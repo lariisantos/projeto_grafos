@@ -1,2 +1,2 @@
-# projeto_grafos
+# Projeto de Grafos
 Projeto de grafos
