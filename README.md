@@ -26,3 +26,13 @@ projeto-grafos/
 │   ├── algorithms.py         # Implementação de BFS, DFS e Dijkstra
 │   └── viz.py                # Visualizações analíticas e interativas
 └── tests/                    # Testes unitários obrigatórios
+```
+
+## 📂 Estrutura dos Datasets (CSV)
+
+```text
+Coluna	Descrição	
+iata	Código identificador único do aeroporto (3 letras)	
+cidade	Nome da cidade onde o aeroporto está sediado	
+regiao	Região do Brasil para fins de agrupamento e métricas	
+```
