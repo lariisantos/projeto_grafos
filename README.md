@@ -28,7 +28,7 @@ projeto-grafos/
 └── tests/                    # Testes unitários obrigatórios
 ```
 
-## 📂 Estrutura dos Datasets (CSV)
+## 📂 Estrutura do Dataset (CSV)
 
 ```text
 Coluna	Descrição	
