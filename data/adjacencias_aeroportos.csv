@@ -1,0 +1,46 @@
+origem,destino,tipo_conexao,justificativa,peso
+BSB,GYN,regional_hub,Conexão direta com hub BSB,1.5
+REC,SSA,regional_hub,Conexão direta com hub REC,1.5
+REC,FOR,regional_hub,Conexão direta com hub REC,1.5
+REC,NAT,regional_hub,Conexão direta com hub REC,1.5
+REC,JPA,regional_hub,Conexão direta com hub REC,1.5
+REC,THE,regional_hub,Conexão direta com hub REC,1.5
+SSA,FOR,regional,Mesma região,1.0
+SSA,NAT,regional,Mesma região,1.0
+SSA,JPA,regional,Mesma região,1.0
+SSA,THE,regional,Mesma região,1.0
+FOR,NAT,regional,Mesma região,1.0
+FOR,JPA,regional,Mesma região,1.0
+FOR,THE,regional,Mesma região,1.0
+NAT,JPA,regional,Mesma região,1.0
+NAT,THE,regional,Mesma região,1.0
+JPA,THE,regional,Mesma região,1.0
+MAO,BEL,regional_hub,Conexão direta com hub MAO,1.5
+MAO,PVH,regional_hub,Conexão direta com hub MAO,1.5
+MAO,RBR,regional_hub,Conexão direta com hub MAO,1.5
+BEL,PVH,regional,Mesma região,1.0
+BEL,RBR,regional,Mesma região,1.0
+PVH,RBR,regional,Mesma região,1.0
+GRU,CGH,regional_hub,Conexão direta com hub GRU,1.5
+GRU,GIG,regional_hub,Conexão direta com hub GRU,1.5
+GRU,CNF,regional_hub,Conexão direta com hub GRU,1.5
+GRU,VIX,regional_hub,Conexão direta com hub GRU,1.5
+CGH,GIG,regional,Mesma região,1.0
+CGH,CNF,regional,Mesma região,1.0
+CGH,VIX,regional,Mesma região,1.0
+GIG,CNF,regional,Mesma região,1.0
+GIG,VIX,regional,Mesma região,1.0
+CNF,VIX,regional,Mesma região,1.0
+CWB,FLN,regional,Mesma região,1.0
+CWB,POA,regional_hub,Conexão direta com hub POA,1.5
+FLN,POA,regional_hub,Conexão direta com hub POA,1.5
+GRU,REC,hub_nacional,Conexão entre hubs regionais,2.0
+GRU,MAO,hub_nacional,Conexão entre hubs regionais,2.0
+GRU,POA,hub_nacional,Conexão entre hubs regionais,2.0
+GRU,BSB,hub_nacional,Conexão entre hubs regionais,2.0
+REC,MAO,hub_nacional,Conexão entre hubs regionais,2.0
+REC,POA,hub_nacional,Conexão entre hubs regionais,2.0
+REC,BSB,hub_nacional,Conexão entre hubs regionais,2.0
+MAO,POA,hub_nacional,Conexão entre hubs regionais,2.0
+MAO,BSB,hub_nacional,Conexão entre hubs regionais,2.0
+POA,BSB,hub_nacional,Conexão entre hubs regionais,2.0
