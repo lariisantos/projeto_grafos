@@ -14,3 +14,4 @@ class Grafo:
         if u in self.adj and v in self.adj:
             self.adj[u][v] = float(peso) # No dicionário do aeroporto u, adicionamos o aeroporto v como vizinho e atribuímos o peso.
             self.adj[v][u] = float(peso) # garante o voo de volta, aresta bidirencional
+
