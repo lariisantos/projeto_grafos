@@ -1,8 +1,3 @@
-"""
-metrics.py — cálculo de métricas estruturais de grafos (Questão 3)
-"""
-
-
 def calcular_densidade(ordem: int, tamanho: int) -> float:
     if ordem < 2:
         return 0.0
@@ -10,7 +5,6 @@ def calcular_densidade(ordem: int, tamanho: int) -> float:
 
 
 def metricas_subgrafo(grafo, nos: set) -> dict:
-    """Ordem, tamanho e densidade do subgrafo induzido pelos nós fornecidos."""
     ordem = len(nos)
     tamanho = 0
     for u in nos:
@@ -26,7 +20,6 @@ def metricas_subgrafo(grafo, nos: set) -> dict:
 
 
 def ego_rede(grafo, no: str) -> dict:
-    """Métricas da ego-network de um nó: o próprio nó mais todos os seus vizinhos."""
     vizinhos = set(grafo.adj.get(no, {}).keys())
     grau = len(vizinhos)
     ego_nos = {no} | vizinhos
