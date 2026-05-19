@@ -94,10 +94,24 @@ def calcular_metricas_q3(
 
     return m_global, lista_regioes, rows_ego
 
+def gerar_arvore_percurso_q7( #Ponto 7
+    caminho_aeroportos: str = 'data/aeroportos_data.csv',
+    caminho_adjacencias: str = 'data/adjacencias_aeroportos.csv',
+    pasta_saida: str = 'out',
+) -> str:
+    from viz import exportar_arvore_percurso
+
+    return exportar_arvore_percurso(
+        caminho_aeroportos=caminho_aeroportos,
+        caminho_adjacencias=caminho_adjacencias,
+        pasta_saida=pasta_saida,
+    )
+
 def main():
     try:
         gerar_arquivo_adjacencias()
         calcular_metricas_q3()
+        gerar_arvore_percurso_q7() #Inicializar o ponto 7
     except Exception as e:
         print(f"Falha na execução: {e}")
         raise
