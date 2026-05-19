@@ -1,6 +1,27 @@
 from collections import deque
 
 
+def calcular_graus(grafo):
+    return {no: len(vizinhos) for no, vizinhos in grafo.adj.items()}
+
+
+def calcular_densidade_ego(grafo, no):
+    vizinhos = set(grafo.adj[no].keys())
+    ego_nos = vizinhos | {no}
+    n = len(ego_nos)
+    if n < 2:
+        return 0.0
+    max_arestas = n * (n - 1) / 2
+    ego_list = list(ego_nos)
+    arestas_reais = sum(
+        1
+        for i in range(len(ego_list))
+        for j in range(i + 1, len(ego_list))
+        if ego_list[j] in grafo.adj[ego_list[i]]
+    )
+    return arestas_reais / max_arestas
+
+
 def bfs(grafo, aeroporto_inicial):
 
     if aeroporto_inicial not in grafo.adj:
