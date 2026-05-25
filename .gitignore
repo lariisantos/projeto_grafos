@@ -1,11 +1,22 @@
 # Claude Code
 .claude/
 
-# Python
+# Python - bytecode e caches
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
 *.pycache
 .pytest_cache/
 .venv/
 venv/
 *.egg-info/
+
+# Binários compilados
+*.so
+*.dll
+*.dylib
+*.exe
+*.out
+*.bin
+
