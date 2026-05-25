@@ -1,0 +1,11 @@
+origem,destino,custo,caminho
+REC,POA,2.0,REC -> POA
+MAO,CGH,3.5,MAO -> GRU -> CGH
+BSB,FLN,3.5,BSB -> POA -> FLN
+FOR,CWB,5.0,FOR -> REC -> POA -> CWB
+GYN,VIX,5.0,GYN -> BSB -> GRU -> VIX
+CNF,SSA,5.0,CNF -> GRU -> REC -> SSA
+GIG,NAT,5.0,GIG -> GRU -> REC -> NAT
+THE,JPA,1.0,THE -> JPA
+NAT,BEL,5.0,NAT -> REC -> MAO -> BEL
+PVH,RBR,1.0,PVH -> RBR
