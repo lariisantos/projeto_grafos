@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Árvore dos percursos obrigatórios</title>
+  <title>BFS — Camadas a partir de GRU</title>
   <style>
     *{box-sizing:border-box;margin:0}
     body{background:#fff;overflow:hidden}
@@ -25,11 +25,12 @@
     .tooltip span{color:#94a3b8;display:block}</style>
 </head>
 <body>
-  <div id="wrap"><svg id="graph" viewBox="0 0 760 490"><g id="viewport"></g></svg></div>
+  <div id="wrap"><svg id="graph" viewBox="0 0 1370 480"><g id="viewport"></g></svg></div>
   <div class="tooltip" id="tooltip"></div>
   <script>
-    const nodes = [{"id": "CGH", "label": "CGH - São Paulo", "cidade": "São Paulo", "regiao": "Sudeste", "x": 590, "y": 345}, {"id": "GRU", "label": "GRU - São Paulo", "cidade": "São Paulo", "regiao": "Sudeste", "x": 360, "y": 345}, {"id": "MAO", "label": "MAO - Manaus", "cidade": "Manaus", "regiao": "Norte", "x": 130, "y": 345}, {"id": "POA", "label": "POA - Porto Alegre", "cidade": "Porto Alegre", "regiao": "Sul", "x": 360, "y": 135}, {"id": "REC", "label": "REC - Recife", "cidade": "Recife", "regiao": "Nordeste", "x": 130, "y": 135}];
-    const edges = [{"source": "CGH", "target": "GRU", "weight": 1.5, "color": "#3b82f6", "route": "MAO → CGH"}, {"source": "GRU", "target": "MAO", "weight": 2.0, "color": "#3b82f6", "route": "MAO → CGH"}, {"source": "POA", "target": "REC", "weight": 2.0, "color": "#ff4d6d", "route": "REC → POA"}];
+    const nodes = [{"id": "GRU", "label": "GRU – São Paulo", "cidade": "São Paulo", "regiao": "Sudeste", "nivel": 0, "cor": "#f59e0b", "x": 685, "y": 80}, {"id": "BSB", "label": "BSB – Brasília", "cidade": "Brasília", "regiao": "Centro-Oeste", "nivel": 1, "cor": "#3b82f6", "x": 155, "y": 240}, {"id": "CGH", "label": "CGH – São Paulo", "cidade": "São Paulo", "regiao": "Sudeste", "nivel": 1, "cor": "#3b82f6", "x": 306, "y": 240}, {"id": "CNF", "label": "CNF – Belo Horizonte", "cidade": "Belo Horizonte", "regiao": "Sudeste", "nivel": 1, "cor": "#3b82f6", "x": 458, "y": 240}, {"id": "GIG", "label": "GIG – Rio de Janeiro", "cidade": "Rio de Janeiro", "regiao": "Sudeste", "nivel": 1, "cor": "#3b82f6", "x": 609, "y": 240}, {"id": "MAO", "label": "MAO – Manaus", "cidade": "Manaus", "regiao": "Norte", "nivel": 1, "cor": "#3b82f6", "x": 760, "y": 240}, {"id": "POA", "label": "POA – Porto Alegre", "cidade": "Porto Alegre", "regiao": "Sul", "nivel": 1, "cor": "#3b82f6", "x": 911, "y": 240}, {"id": "REC", "label": "REC – Recife", "cidade": "Recife", "regiao": "Nordeste", "nivel": 1, "cor": "#3b82f6", "x": 1063, "y": 240}, {"id": "VIX", "label": "VIX – Vitória", "cidade": "Vitória", "regiao": "Sudeste", "nivel": 1, "cor": "#3b82f6", "x": 1214, "y": 240}, {"id": "BEL", "label": "BEL – Belém", "cidade": "Belém", "regiao": "Norte", "nivel": 2, "cor": "#10b981", "x": 245, "y": 400}, {"id": "CWB", "label": "CWB – Curitiba", "cidade": "Curitiba", "regiao": "Sul", "nivel": 2, "cor": "#10b981", "x": 575, "y": 400}, {"id": "FLN", "label": "FLN – Florianópolis", "cidade": "Florianópolis", "regiao": "Sul", "nivel": 2, "cor": "#10b981", "x": 685, "y": 400}, {"id": "FOR", "label": "FOR – Fortaleza", "cidade": "Fortaleza", "regiao": "Nordeste", "nivel": 2, "cor": "#10b981", "x": 795, "y": 400}, {"id": "GYN", "label": "GYN – Goiânia", "cidade": "Goiânia", "regiao": "Centro-Oeste", "nivel": 2, "cor": "#10b981", "x": 135, "y": 400}, {"id": "JPA", "label": "JPA – João Pessoa", "cidade": "João Pessoa", "regiao": "Nordeste", "nivel": 2, "cor": "#10b981", "x": 905, "y": 400}, {"id": "NAT", "label": "NAT – Natal", "cidade": "Natal", "regiao": "Nordeste", "nivel": 2, "cor": "#10b981", "x": 1015, "y": 400}, {"id": "PVH", "label": "PVH – Porto Velho", "cidade": "Porto Velho", "regiao": "Norte", "nivel": 2, "cor": "#10b981", "x": 355, "y": 400}, {"id": "RBR", "label": "RBR – Rio Branco", "cidade": "Rio Branco", "regiao": "Norte", "nivel": 2, "cor": "#10b981", "x": 465, "y": 400}, {"id": "SSA", "label": "SSA – Salvador", "cidade": "Salvador", "regiao": "Nordeste", "nivel": 2, "cor": "#10b981", "x": 1125, "y": 400}, {"id": "THE", "label": "THE – Teresina", "cidade": "Teresina", "regiao": "Nordeste", "nivel": 2, "cor": "#10b981", "x": 1235, "y": 400}];
+    const edges = [{"source": "GRU", "target": "CGH", "color": "#3b82f6"}, {"source": "GRU", "target": "GIG", "color": "#3b82f6"}, {"source": "GRU", "target": "CNF", "color": "#3b82f6"}, {"source": "GRU", "target": "VIX", "color": "#3b82f6"}, {"source": "GRU", "target": "REC", "color": "#3b82f6"}, {"source": "GRU", "target": "MAO", "color": "#3b82f6"}, {"source": "GRU", "target": "POA", "color": "#3b82f6"}, {"source": "GRU", "target": "BSB", "color": "#3b82f6"}, {"source": "REC", "target": "SSA", "color": "#10b981"}, {"source": "REC", "target": "FOR", "color": "#10b981"}, {"source": "REC", "target": "NAT", "color": "#10b981"}, {"source": "REC", "target": "JPA", "color": "#10b981"}, {"source": "REC", "target": "THE", "color": "#10b981"}, {"source": "MAO", "target": "BEL", "color": "#10b981"}, {"source": "MAO", "target": "PVH", "color": "#10b981"}, {"source": "MAO", "target": "RBR", "color": "#10b981"}, {"source": "POA", "target": "CWB", "color": "#10b981"}, {"source": "POA", "target": "FLN", "color": "#10b981"}, {"source": "BSB", "target": "GYN", "color": "#10b981"}];
+    const nivelInfo = {"0": {"x": 685, "y": 80}, "1": {"x": 685, "y": 240}, "2": {"x": 685, "y": 400}};
     
     const svg=document.getElementById('graph'),viewport=document.getElementById('viewport'),tooltip=document.getElementById('tooltip');
     let scale=1,translateX=0,translateY=0,selectedNode=null,isPanning=false,panStart={x:0,y:0,tx:0,ty:0};
@@ -56,35 +57,34 @@
     });
     function render(){
       viewport.innerHTML='';
+      Object.entries(nivelInfo).forEach(([nivel,pos])=>{
+        const lbl=document.createElementNS('http://www.w3.org/2000/svg','text');
+        lbl.setAttribute('class','level-label');
+        lbl.setAttribute('x',30);lbl.setAttribute('y',pos.y+5);
+        lbl.textContent=nivel==='0'?'Origem':`Camada ${nivel}`;
+        viewport.appendChild(lbl);
+      });
       edges.forEach((edge,i)=>{
         const s=nodeById(edge.source),t=nodeById(edge.target);
         const line=document.createElementNS('http://www.w3.org/2000/svg','line');
         line.setAttribute('class','edge');line.setAttribute('id',`edge-${i}`);
         line.setAttribute('x1',s.x);line.setAttribute('y1',s.y);
         line.setAttribute('x2',t.x);line.setAttribute('y2',t.y);
-        line.setAttribute('stroke',edge.color);line.setAttribute('stroke-width',4);line.setAttribute('opacity','0.8');
-        line.addEventListener('mouseenter',()=>line.setAttribute('stroke-width',7));
-        line.addEventListener('mouseleave',()=>line.setAttribute('stroke-width',4));
+        line.setAttribute('stroke',edge.color);line.setAttribute('stroke-width',2.5);line.setAttribute('opacity','0.7');
         viewport.appendChild(line);
-        const lbl=document.createElementNS('http://www.w3.org/2000/svg','text');
-        lbl.setAttribute('class','edge-label');lbl.setAttribute('id',`edge-lbl-${i}`);
-        lbl.setAttribute('x',(s.x+t.x)/2);lbl.setAttribute('y',(s.y+t.y)/2-10);
-        lbl.textContent=`peso ${edge.weight}`;
-        viewport.appendChild(lbl);
       });
       nodes.forEach(node=>{
         const g=document.createElementNS('http://www.w3.org/2000/svg','g');
         g.setAttribute('class','node');g.setAttribute('transform',`translate(${node.x},${node.y})`);g.dataset.id=node.id;
         const circle=document.createElementNS('http://www.w3.org/2000/svg','circle');
-        circle.setAttribute('r',34);circle.setAttribute('fill','#334155');g.appendChild(circle);
+        circle.setAttribute('r',32);circle.setAttribute('fill',node.cor);g.appendChild(circle);
         const iata=document.createElementNS('http://www.w3.org/2000/svg','text');
         iata.setAttribute('class','iata');iata.setAttribute('y',5);iata.textContent=node.id;g.appendChild(iata);
         const city=document.createElementNS('http://www.w3.org/2000/svg','text');
-        city.setAttribute('class','city');city.setAttribute('y',56);city.textContent=node.label;g.appendChild(city);
+        city.setAttribute('class','city');city.setAttribute('y',52);city.textContent=node.label;g.appendChild(city);
         g.addEventListener('mousedown',e=>{e.stopPropagation();selectedNode=node;});
         g.addEventListener('mouseenter',e=>{
-          const deg=edges.filter(ed=>ed.source===node.id||ed.target===node.id).length;
-          tooltip.innerHTML=`<strong>${node.label}</strong><span>Região: ${node.regiao||'—'}</span><span>Conexões: ${deg}</span>`;
+          tooltip.innerHTML=`<strong>${node.label}</strong><span>Região: ${node.regiao||'—'}</span><span>Camada BFS: ${node.nivel}</span>`;
           tooltip.classList.add('visible');moveTooltip(e);
         });
         g.addEventListener('mousemove',moveTooltip);g.addEventListener('mouseleave',hideTooltip);
@@ -100,10 +100,8 @@
       edges.forEach((edge,i)=>{
         const s=nodeById(edge.source),t=nodeById(edge.target);
         const line=document.getElementById(`edge-${i}`);
-        const lbl=document.getElementById(`edge-lbl-${i}`);
         line.setAttribute('x1',s.x);line.setAttribute('y1',s.y);
         line.setAttribute('x2',t.x);line.setAttribute('y2',t.y);
-        lbl.setAttribute('x',(s.x+t.x)/2);lbl.setAttribute('y',(s.y+t.y)/2-10);
       });
     }
     render();
