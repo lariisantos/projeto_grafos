@@ -121,3 +121,71 @@ def bfs_filmes(grafo, fonte_inicial):
                         ciclos.append((no_atual, vizinho))
 
     return ordem_visita, camadas, predecessores, ciclos
+
+def dfs_filmes(grafo, fonte_inicial):
+    if hasattr(grafo, "adj"):
+        adjacencias = grafo.adj
+    else:
+        adjacencias = grafo
+
+    if fonte_inicial not in adjacencias:
+        raise ValueError(f"A fonte {fonte_inicial} não existe no grafo de filmes.")
+
+    cores = {}
+    ordem_visita = []
+    camadas = {}
+    predecessores = {}
+    ciclos = []
+
+    tempos_entrada = {}
+    tempos_saida = {}
+    tempo = [0]
+
+    classificacao_arestas = {
+        "arvore": [],
+        "retorno": [],
+        "avanco": [],
+        "cruzamento": []
+    }
+
+    for no in adjacencias:
+        cores[no] = "branco"
+        predecessores[no] = None
+
+    def visitar(no_atual, profundidade):
+        cores[no_atual] = "cinza"
+        tempo[0] += 1
+        tempos_entrada[no_atual] = tempo[0]
+
+        ordem_visita.append(no_atual)
+        camadas[no_atual] = profundidade
+
+        for vizinho in adjacencias[no_atual]:
+
+            if vizinho not in cores:
+                cores[vizinho] = "branco"
+                predecessores[vizinho] = None
+
+            if cores[vizinho] == "branco":
+                classificacao_arestas["arvore"].append((no_atual, vizinho))
+                predecessores[vizinho] = no_atual
+                visitar(vizinho, profundidade + 1)
+
+            elif cores[vizinho] == "cinza":
+                if predecessores[no_atual] != vizinho:
+                    classificacao_arestas["retorno"].append((no_atual, vizinho))
+                    ciclos.append((no_atual, vizinho))
+
+            else:
+                if tempos_entrada[no_atual] < tempos_entrada[vizinho]:
+                    classificacao_arestas["avanco"].append((no_atual, vizinho))
+                else:
+                    classificacao_arestas["cruzamento"].append((no_atual, vizinho))
+
+        cores[no_atual] = "preto"
+        tempo[0] += 1
+        tempos_saida[no_atual] = tempo[0]
+
+    visitar(fonte_inicial, 0)
+
+    return ordem_visita, camadas, predecessores, ciclos, classificacao_arestas
