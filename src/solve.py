@@ -12,6 +12,7 @@ from graphs.algorithms import dijkstra
 from graphs.io import carregar_aeroportos, carregar_grafo
 from graphs.graph import Grafo
 from graphs.metrics import metricas_subgrafo, ego_rede
+from analise_q10 import analise_avd
 
 from pyvis.network import Network
 
@@ -235,6 +236,7 @@ def main():
         calcular_metricas_q3()
         gerar_arvore_percurso_q7() #Inicializar o ponto 7
         gerar_grafo_interativo()
+        analise_avd()              #Ponto 10
     except Exception as e:
         print(f"Falha na execução: {e}")
         raise
