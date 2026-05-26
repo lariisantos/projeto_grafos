@@ -224,6 +224,69 @@ def gerar_visualizacoes_avd(pasta_dados: str = 'out'):
     plt.close()
     print(f"[AVD] Gráfico de barras salvo em: {caminho_barra}")
 
+def gerar_comparacao_regioes(pasta_dados: str = 'out'):
+    caminho_json = os.path.join(pasta_dados, 'regioes.json')
+    if not os.path.exists(caminho_json):
+        print(f"Erro: {caminho_json} não encontrado. Execute calcular_metricas primeiro.")
+        return
+
+    with open(caminho_json, 'r', encoding='utf-8') as f:
+        dados = json.load(f)
+
+    regioes = [d['regiao'] for d in dados]
+    ordens = [d['ordem'] for d in dados]
+    tamanhos = [d['tamanho'] for d in dados]
+    densidades = [d['densidade'] for d in dados]
+
+    cores = ['#4c72b0', '#dd8452', '#55a868', '#c44e52', '#8172b3']
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+    fig.suptitle('Comparação entre Regiões', fontsize=14, fontweight='bold')
+
+    for ax, valores, titulo, ylabel in zip(
+        axes,
+        [ordens, tamanhos, densidades],
+        ['Ordem (Nós)', 'Tamanho (Arestas)', 'Densidade'],
+        ['Quantidade', 'Quantidade', 'Valor'],
+    ):
+        ax.bar(regioes, valores, color=cores[:len(regioes)], edgecolor='black', alpha=0.9)
+        ax.set_title(titulo, fontsize=12)
+        ax.set_ylabel(ylabel, fontsize=11)
+        ax.tick_params(axis='x', rotation=20)
+        ax.grid(axis='y', linestyle='--', alpha=0.7)
+
+    plt.tight_layout()
+    caminho = os.path.join(pasta_dados, 'comparacao_regioes.png')
+    plt.savefig(caminho, dpi=300, bbox_inches='tight')
+    plt.close()
+    print(f"[AVD] Comparação entre regiões salva em: {caminho}")
+
+
+def gerar_subgrafo_maior_grau(
+    caminho_aeroportos: str = 'data/aeroportos_data.csv',
+    caminho_adjacencias: str = 'data/adjacencias_aeroportos.csv',
+    pasta_saida: str = 'out',
+) -> str:
+    from viz import exportar_subgrafo_maior_grau
+    return exportar_subgrafo_maior_grau(
+        caminho_aeroportos=caminho_aeroportos,
+        caminho_adjacencias=caminho_adjacencias,
+        pasta_saida=pasta_saida,
+    )
+
+
+def gerar_bfs_camadas(
+    caminho_aeroportos: str = 'data/aeroportos_data.csv',
+    caminho_adjacencias: str = 'data/adjacencias_aeroportos.csv',
+    pasta_saida: str = 'out',
+) -> str:
+    from viz import exportar_bfs_camadas
+    return exportar_bfs_camadas(
+        caminho_aeroportos=caminho_aeroportos,
+        caminho_adjacencias=caminho_adjacencias,
+        pasta_saida=pasta_saida,
+    )
+
+
 def main():
     try:
         gerar_arquivo_adjacencias()
@@ -232,8 +295,11 @@ def main():
         gerar_arvore_percurso_q7() #Inicializar o ponto 7
         gerar_grafo_interativo()
         calcular_metricas()
-        gerar_arvore_percurso() 
+        gerar_arvore_percurso()
         gerar_visualizacoes_avd()
+        gerar_comparacao_regioes()
+        gerar_subgrafo_maior_grau()
+        gerar_bfs_camadas()
     except Exception as e:
         print(f"Falha na execução: {e}")
         raise
