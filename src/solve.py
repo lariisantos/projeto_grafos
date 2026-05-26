@@ -1,4 +1,4 @@
-import csv
+﻿import csv
 import json
 import os
 import sys
@@ -78,14 +78,14 @@ def calcular_rotas_dijkstra():
     for orig, dest in rotas:
         if orig not in grafo.adj or dest not in grafo.adj:
             resultados.append([orig, dest, float('inf'), "Sem caminho viável"])
-            print(f"[Q6]   {orig} → {dest:3s} → Erro: Aeroporto não encontrado no grafo.")
+            print(f"[Q6]   {orig} -> {dest:3s} -> Erro: Aeroporto não encontrado no grafo.")
             continue
             
         custo, caminho = dijkstra(grafo, orig, dest)
         str_caminho = " -> ".join(caminho) if caminho else "Sem caminho viável"
         
         resultados.append([orig, dest, custo, str_caminho])
-        print(f"[Q6]   {orig} → {dest:3s} → custo={custo:.1f}, caminho=[{str_caminho}]")
+        print(f"[Q6]   {orig} -> {dest:3s} -> custo={custo:.1f}, caminho=[{str_caminho}]")
 
     os.makedirs('out', exist_ok=True)
     with open('out/distancias_rotas.csv', 'w', newline='', encoding='utf-8') as f:
@@ -94,7 +94,7 @@ def calcular_rotas_dijkstra():
         for res in resultados:
             writer.writerow(res)
             
-    print(f"[Q6] distancias_rotas.csv → {len(resultados)} rotas processadas")
+    print(f"[Q6] distancias_rotas.csv -> {len(resultados)} rotas processadas")
     grafo, _ = carregar_grafo('data/aeroportos_data.csv', 'data/adjacencias_aeroportos.csv')
     rotas = []
     
@@ -139,7 +139,7 @@ def calcular_metricas_q3(
     m_global = metricas_subgrafo(grafo, todos_nos)
     with open(os.path.join(pasta_saida, 'global.json'), 'w', encoding='utf-8') as f:
         json.dump(m_global, f, ensure_ascii=False, indent=2)
-    print(f"[Q3] global.json  → ordem={m_global['ordem']}, tamanho={m_global['tamanho']}, densidade={m_global['densidade']:.4f}")
+    print(f"[Q3] global.json  -> ordem={m_global['ordem']}, tamanho={m_global['tamanho']}, densidade={m_global['densidade']:.4f}")
 
     mapa_regioes: dict[str, set] = {}
     for _, row in df.iterrows():
@@ -150,16 +150,16 @@ def calcular_metricas_q3(
         nos_regiao = mapa_regioes[regiao]
         m = metricas_subgrafo(grafo, nos_regiao)
         lista_regioes.append({'regiao': regiao, **m})
-        print(f"[Q3]   {regiao:15s} → ordem={m['ordem']}, tamanho={m['tamanho']}, densidade={m['densidade']:.4f}")
+        print(f"[Q3]   {regiao:15s} -> ordem={m['ordem']}, tamanho={m['tamanho']}, densidade={m['densidade']:.4f}")
 
     with open(os.path.join(pasta_saida, 'regioes.json'), 'w', encoding='utf-8') as f:
         json.dump(lista_regioes, f, ensure_ascii=False, indent=2)
-    print(f"[Q3] regioes.json → {len(lista_regioes)} regiões")
+    print(f"[Q3] regioes.json -> {len(lista_regioes)} regiões")
 
     rows_ego = [ego_rede(grafo, no) for no in sorted(grafo.adj.keys())]
     df_ego = pd.DataFrame(rows_ego, columns=['aeroporto', 'grau', 'ordem_ego', 'tamanho_ego', 'densidade_ego'])
     df_ego.to_csv(os.path.join(pasta_saida, 'ego_aeroportos.csv'), index=False)
-    print(f"[Q3] ego_aeroportos.csv → {len(rows_ego)} aeroportos")
+    print(f"[Q3] ego_aeroportos.csv -> {len(rows_ego)} aeroportos")
 
     return m_global, lista_regioes, rows_ego
    
@@ -214,7 +214,7 @@ def gerar_grafo_interativo():
 
     os.makedirs('out', exist_ok=True)
     net.write_html('out/grafo_interativo.html')
-    print("[Q9] grafo_interativo.html → Gerado com sucesso")
+    print("[Q9] grafo_interativo.html -> Gerado com sucesso")
 
 def gerar_arvore_percurso_q7( #Ponto 7
     caminho_aeroportos: str = 'data/aeroportos_data.csv',
