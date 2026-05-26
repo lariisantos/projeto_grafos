@@ -4,6 +4,7 @@ import os
 import sys
 
 import pandas as pd
+import matplotlib.pyplot as plt
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -60,72 +61,7 @@ def gerar_arquivo_adjacencias():
     print("Sucesso: Arquivo 'adjacencias_aeroportos.csv' gerado com dados validados.")
 
 
-def calcular_rotas_dijkstra():
-    grafo, _ = carregar_grafo('data/aeroportos_data.csv', 'data/adjacencias_aeroportos.csv')
-    rotas = []
-    
-    try:
-        with open('data/rotas.csv', 'r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                if row.get('origem') and row.get('destino'):
-                    rotas.append((row['origem'].strip(), row['destino'].strip()))
-    except FileNotFoundError:
-        pass
-
-    resultados = []
-    for orig, dest in rotas:
-        if orig not in grafo.adj or dest not in grafo.adj:
-            resultados.append([orig, dest, float('inf'), "Sem caminho viável"])
-            print(f"[Q6]   {orig} → {dest:3s} → Erro: Aeroporto não encontrado no grafo.")
-            continue
-            
-        custo, caminho = dijkstra(grafo, orig, dest)
-        str_caminho = " -> ".join(caminho) if caminho else "Sem caminho viável"
-        
-        resultados.append([orig, dest, custo, str_caminho])
-        print(f"[Q6]   {orig} → {dest:3s} → custo={custo:.1f}, caminho=[{str_caminho}]")
-
-    os.makedirs('out', exist_ok=True)
-    with open('out/distancias_rotas.csv', 'w', newline='', encoding='utf-8') as f:
-        writer = csv.writer(f)
-        writer.writerow(['origem', 'destino', 'custo', 'caminho'])
-        for res in resultados:
-            writer.writerow(res)
-            
-    print(f"[Q6] distancias_rotas.csv → {len(resultados)} rotas processadas")
-    grafo, _ = carregar_grafo('data/aeroportos_data.csv', 'data/adjacencias_aeroportos.csv')
-    rotas = []
-    
-    try:
-        with open('data/rotas.csv', 'r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                if row.get('origem') and row.get('destino'):
-                    rotas.append((row['origem'].strip(), row['destino'].strip()))
-    except FileNotFoundError:
-        pass
-
-    resultados = []
-    for orig, dest in rotas:
-        if orig not in grafo.adj or dest not in grafo.adj:
-            resultados.append([orig, dest, float('inf'), "Sem caminho viável"])
-            continue
-            
-        custo, caminho = dijkstra(grafo, orig, dest)
-        str_caminho = " -> ".join(caminho) if caminho else "Sem caminho viável"
-        
-        resultados.append([orig, dest, custo, str_caminho])
-
-    os.makedirs('out', exist_ok=True)
-    with open('out/distancias_rotas.csv', 'w', newline='', encoding='utf-8') as f:
-        writer = csv.writer(f)
-        writer.writerow(['origem', 'destino', 'custo', 'caminho'])
-        for res in resultados:
-            writer.writerow(res)
-
-
-def calcular_metricas_q3(
+def calcular_metricas(
     caminho_aeroportos: str = 'data/aeroportos_data.csv',
     caminho_adjacencias: str = 'data/adjacencias_aeroportos.csv',
     pasta_saida: str = 'out',
@@ -215,7 +151,7 @@ def gerar_grafo_interativo():
     net.write_html('out/grafo_interativo.html')
     print("[Q9] grafo_interativo.html → Gerado com sucesso")
 
-def gerar_arvore_percurso_q7( #Ponto 7
+def gerar_arvore_percurso( 
     caminho_aeroportos: str = 'data/aeroportos_data.csv',
     caminho_adjacencias: str = 'data/adjacencias_aeroportos.csv',
     pasta_saida: str = 'out',
@@ -228,6 +164,66 @@ def gerar_arvore_percurso_q7( #Ponto 7
         pasta_saida=pasta_saida,
     )
 
+def gerar_visualizacoes_avd(pasta_dados: str = 'out'):
+    caminho_csv = os.path.join(pasta_dados, 'ego_aeroportos.csv')
+    
+    if not os.path.exists(caminho_csv):
+        print(f"Erro: {caminho_csv} não encontrado. Execute calcular_metricas_q3 primeiro.")
+        return
+
+    df_ego = pd.read_csv(caminho_csv)
+    
+    # --- VISUALIZAÇÃO 1: Distribuição de Graus (Histograma) ---
+    plt.figure(figsize=(8, 5))
+    
+    # Contagem da frequência de cada grau ordenado de forma ascedente
+    contagem_graus = df_ego['grau'].value_counts().sort_index()
+    
+    plt.bar(contagem_graus.index, 
+            contagem_graus.values, 
+            color='#4c72b0', 
+            edgecolor='black', 
+            alpha=0.9, 
+            width=0.8)
+    
+    plt.title('Distribuição de Graus dos Aeroportos', fontsize=14, pad=15, fontweight='bold')
+    plt.xlabel('Grau (Número de Interconexões)', fontsize=12)
+    plt.ylabel('Frequência (Número de Aeroportos)', fontsize=12)
+    
+    plt.xticks(range(int(df_ego['grau'].min()), int(df_ego['grau'].max()) + 1))
+    plt.grid(axis='y', linestyle='--', alpha=0.7) # Linhas de grade na horizontal
+    
+    plt.tight_layout()
+    caminho_hist = os.path.join(pasta_dados, 'distribuicao_graus.png')
+    plt.savefig(caminho_hist, dpi=300)
+    plt.close()
+    print(f"[AVD] Histograma salvo em: {caminho_hist}")
+
+    # --- VISUALIZAÇÃO 2: Ranking de Aeroportos Mais Conectados (Barra Ordenada) ---
+    plt.figure(figsize=(10, 6))
+    
+    # Ordena os dados do menor para o maior (para que o maior fique no topo do gráfico horizontal)
+    df_ranking = df_ego.sort_values(by='grau', ascending=True)
+    
+    # Criando um degradê de azul usando um colormap do Matplotlib
+    valores_norm = (df_ranking['grau'] - df_ranking['grau'].min()) / (df_ranking['grau'].max() - df_ranking['grau'].min())
+    cores_gradient = plt.cm.Blues(valores_norm * 0.6 + 0.4) 
+    
+    # Gráfico de barras horizontais
+    plt.barh(df_ranking['aeroporto'], df_ranking['grau'], color=cores_gradient, edgecolor='none')
+    
+    # Customização de AVD
+    plt.title('Ranking de Aeroportos por Nível de Conectividade', fontsize=14, pad=15, fontweight='bold')
+    plt.xlabel('Grau (Número de Interconexões)', fontsize=12)
+    plt.ylabel('Aeroporto (IATA)', fontsize=12)
+    plt.grid(axis='x', linestyle='--', alpha=0.7) # Linhas de grade verticais para ajudar a ler o ranking
+    
+    plt.tight_layout()
+    caminho_barra = os.path.join(pasta_dados, 'ranking_aeroportos.png')
+    plt.savefig(caminho_barra, dpi=300)
+    plt.close()
+    print(f"[AVD] Gráfico de barras salvo em: {caminho_barra}")
+
 def main():
     try:
         gerar_arquivo_adjacencias()
@@ -235,6 +231,9 @@ def main():
         calcular_metricas_q3()
         gerar_arvore_percurso_q7() #Inicializar o ponto 7
         gerar_grafo_interativo()
+        calcular_metricas()
+        gerar_arvore_percurso() 
+        gerar_visualizacoes_avd()
     except Exception as e:
         print(f"Falha na execução: {e}")
         raise
