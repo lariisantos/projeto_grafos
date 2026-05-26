@@ -1,3 +1,4 @@
+import heapq
 from collections import deque
 
 
@@ -51,3 +52,22 @@ def bfs(grafo, aeroporto_inicial):
                 predecessores[aeroporto_vizinho] = aeroporto_atual
 
     return ordem_visita, niveis, predecessores
+
+def dijkstra(grafo, origem, destino):
+    fila = [(0.0, origem, [origem])]
+    visitados = set()
+    
+    while fila:
+        custo, no_atual, caminho = heapq.heappop(fila)
+        
+        if no_atual == destino:
+            return custo, caminho
+            
+        if no_atual not in visitados:
+            visitados.add(no_atual)
+            
+            for vizinho, peso in grafo.adj.get(no_atual, {}).items():
+                if vizinho not in visitados:
+                    heapq.heappush(fila, (custo + peso, vizinho, caminho + [vizinho]))
+                    
+    return float('inf'), []

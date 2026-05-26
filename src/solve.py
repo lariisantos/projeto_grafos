@@ -1,3 +1,4 @@
+import csv
 import json
 import os
 import sys
@@ -6,14 +7,15 @@ import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+from graphs.algorithms import dijkstra
+
 from graphs.io import carregar_aeroportos, carregar_grafo
 from graphs.graph import Grafo
 from graphs.metrics import metricas_subgrafo, ego_rede
 
-from graphs.algorithms import calcular_graus, calcular_densidade_ego
+from pyvis.network import Network
 
 def gerar_arquivo_adjacencias():
-    """Cria o arquivo de conexões baseando-se em dados já validados na io.py."""
     df = carregar_aeroportos('data/aeroportos_data.csv')
 
     hubs = {
@@ -57,45 +59,70 @@ def gerar_arquivo_adjacencias():
     df_adj.to_csv('data/adjacencias_aeroportos.csv', index=False)
     print("Sucesso: Arquivo 'adjacencias_aeroportos.csv' gerado com dados validados.")
 
-def construir_grafo():
-    df_nos = carregar_aeroportos('data/aeroportos_data.csv')
-    df_adj = pd.read_csv('data/adjacencias_aeroportos.csv')
 
-    g = Grafo()
-    for _, row in df_nos.iterrows():
-        g.adicionar_vertice(row['iata'], {'cidade': row['cidade'], 'regiao': row['regiao']})
+def calcular_rotas_dijkstra():
+    grafo, _ = carregar_grafo('data/aeroportos_data.csv', 'data/adjacencias_aeroportos.csv')
+    rotas = []
+    
+    try:
+        with open('data/rotas.csv', 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                if row.get('origem') and row.get('destino'):
+                    rotas.append((row['origem'].strip(), row['destino'].strip()))
+    except FileNotFoundError:
+        pass
 
-    for _, row in df_adj.iterrows():
-        g.adicionar_aresta(row['origem'], row['destino'], row['peso'])
+    resultados = []
+    for orig, dest in rotas:
+        if orig not in grafo.adj or dest not in grafo.adj:
+            resultados.append([orig, dest, float('inf'), "Sem caminho viável"])
+            print(f"[Q6]   {orig} → {dest:3s} → Erro: Aeroporto não encontrado no grafo.")
+            continue
+            
+        custo, caminho = dijkstra(grafo, orig, dest)
+        str_caminho = " -> ".join(caminho) if caminho else "Sem caminho viável"
+        
+        resultados.append([orig, dest, custo, str_caminho])
+        print(f"[Q6]   {orig} → {dest:3s} → custo={custo:.1f}, caminho=[{str_caminho}]")
 
-    return g
+    os.makedirs('out', exist_ok=True)
+    with open('out/distancias_rotas.csv', 'w', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        writer.writerow(['origem', 'destino', 'custo', 'caminho'])
+        for res in resultados:
+            writer.writerow(res)
+            
+    print(f"[Q6] distancias_rotas.csv → {len(resultados)} rotas processadas")
+    grafo, _ = carregar_grafo('data/aeroportos_data.csv', 'data/adjacencias_aeroportos.csv')
+    rotas = []
+    
+    try:
+        with open('data/rotas.csv', 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                if row.get('origem') and row.get('destino'):
+                    rotas.append((row['origem'].strip(), row['destino'].strip()))
+    except FileNotFoundError:
+        pass
 
+    resultados = []
+    for orig, dest in rotas:
+        if orig not in grafo.adj or dest not in grafo.adj:
+            resultados.append([orig, dest, float('inf'), "Sem caminho viável"])
+            continue
+            
+        custo, caminho = dijkstra(grafo, orig, dest)
+        str_caminho = " -> ".join(caminho) if caminho else "Sem caminho viável"
+        
+        resultados.append([orig, dest, custo, str_caminho])
 
-def gerar_arquivo_graus(grafo):
-    graus = calcular_graus(grafo)
-
-    dados = sorted(
-        [
-            {
-                'aeroporto': iata,
-                'grau': grau,
-                'densidade_ego': round(calcular_densidade_ego(grafo, iata), 4),
-            }
-            for iata, grau in graus.items()
-        ],
-        key=lambda x: -x['grau'],
-    )
-
-    pd.DataFrame(dados).to_csv('out/graus.csv', index=False)
-
-    mais_conectado = max(graus, key=graus.get)
-    maior_densidade = max(graus, key=lambda iata: calcular_densidade_ego(grafo, iata))
-
-    print(f"Arquivo 'out/graus.csv' gerado com sucesso.")
-    print(f"Aeroporto mais conectado:          {mais_conectado} (grau={graus[mais_conectado]})")
-    print(f"Aeroporto com maior densidade local: {maior_densidade} "
-          f"(densidade_ego={round(calcular_densidade_ego(grafo, maior_densidade), 4)})")
-
+    os.makedirs('out', exist_ok=True)
+    with open('out/distancias_rotas.csv', 'w', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        writer.writerow(['origem', 'destino', 'custo', 'caminho'])
+        for res in resultados:
+            writer.writerow(res)
 
 
 def calcular_metricas_q3(
@@ -134,6 +161,59 @@ def calcular_metricas_q3(
     print(f"[Q3] ego_aeroportos.csv → {len(rows_ego)} aeroportos")
 
     return m_global, lista_regioes, rows_ego
+   
+def gerar_grafo_interativo():
+    info_nos = {}
+    try:
+        with open('data/aeroportos_data.csv', 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                info_nos[row['iata']] = {'regiao': row['regiao']}
+    except FileNotFoundError:
+        pass
+
+    try:
+        with open('out/ego_aeroportos.csv', 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                aero = row['aeroporto']
+                if aero not in info_nos:
+                    info_nos[aero] = {}
+                info_nos[aero]['grau'] = row['grau']
+                info_nos[aero]['densidade_ego'] = row['densidade_ego']
+    except FileNotFoundError:
+        pass
+
+    net = Network(height="750px", width="100%", bgcolor="#ffffff", font_color="black", select_menu=False, cdn_resources='remote')
+
+    nos_adicionados = set()
+    try:
+        with open('data/adjacencias_aeroportos.csv', 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                u = row['origem']
+                v = row['destino']
+                peso = float(row['peso'])
+                
+                for no in (u, v):
+                    if no not in nos_adicionados:
+                        info = info_nos.get(no, {})
+                        regiao = info.get('regiao', 'Desconhecida')
+                        grau = info.get('grau', '?')
+                        densidade = round(float(info.get('densidade_ego', 0.0)), 3) if info.get('densidade_ego') else '?'
+                        
+                        tooltip = f"Aeroporto: {no}\n Região: {regiao}\n Grau: {grau}\n Densidade Ego: {densidade}"
+                        net.add_node(no, label=no, title=tooltip)
+                        nos_adicionados.add(no)
+                
+                net.add_edge(u, v, value=peso)
+    except FileNotFoundError:
+        print("Erro: Arquivo adjacencias_aeroportos.csv não encontrado.")
+        return
+
+    os.makedirs('out', exist_ok=True)
+    net.write_html('out/grafo_interativo.html')
+    print("[Q9] grafo_interativo.html → Gerado com sucesso")
 
 def gerar_arvore_percurso_q7( #Ponto 7
     caminho_aeroportos: str = 'data/aeroportos_data.csv',
@@ -151,15 +231,10 @@ def gerar_arvore_percurso_q7( #Ponto 7
 def main():
     try:
         gerar_arquivo_adjacencias()
-
-        # Passo 2: Construir o grafo
-        g = construir_grafo()
-
-        # Passo 3: Graus e rankings
-        gerar_arquivo_graus(g)
-
+        calcular_rotas_dijkstra()
         calcular_metricas_q3()
         gerar_arvore_percurso_q7() #Inicializar o ponto 7
+        gerar_grafo_interativo()
     except Exception as e:
         print(f"Falha na execução: {e}")
         raise
