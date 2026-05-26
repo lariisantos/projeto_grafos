@@ -71,3 +71,53 @@ def dijkstra(grafo, origem, destino):
                     heapq.heappush(fila, (custo + peso, vizinho, caminho + [vizinho]))
                     
     return float('inf'), []
+
+def bfs_filmes(grafo, fonte_inicial):
+
+    if hasattr(grafo, "adj"):
+        adjacencias = grafo.adj
+    else:
+        adjacencias = grafo
+
+    if fonte_inicial not in adjacencias:
+        raise ValueError(f"A fonte {fonte_inicial} não existe no grafo de filmes.")
+
+    fila = []
+    inicio_fila = 0
+
+    visitados = set()
+    ordem_visita = []
+    camadas = {}
+    predecessores = {}
+    ciclos = []
+
+    arestas_de_ciclo_vistas = set()
+
+    fila.append(fonte_inicial)
+    visitados.add(fonte_inicial)
+    camadas[fonte_inicial] = 0
+    predecessores[fonte_inicial] = None
+
+    while inicio_fila < len(fila):
+        no_atual = fila[inicio_fila]
+        inicio_fila += 1
+
+        ordem_visita.append(no_atual)
+
+        for vizinho in adjacencias[no_atual]:
+            if vizinho not in visitados:
+                visitados.add(vizinho)
+                fila.append(vizinho)
+
+                camadas[vizinho] = camadas[no_atual] + 1
+                predecessores[vizinho] = no_atual
+
+            else:
+                if predecessores[no_atual] != vizinho and predecessores.get(vizinho) != no_atual:
+                    chave_aresta = tuple(sorted([str(no_atual), str(vizinho)]))
+
+                    if chave_aresta not in arestas_de_ciclo_vistas:
+                        arestas_de_ciclo_vistas.add(chave_aresta)
+                        ciclos.append((no_atual, vizinho))
+
+    return ordem_visita, camadas, predecessores, ciclos

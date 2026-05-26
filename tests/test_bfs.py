@@ -1,5 +1,5 @@
 from src.graphs.graph import Grafo
-from src.graphs.algorithms import bfs
+from src.graphs.algorithms import bfs, bfs_filmes
 
 
 def test_bfs_niveis():
@@ -28,3 +28,28 @@ def test_bfs_niveis():
     assert predecessores["SSA"] == "REC"
     assert predecessores["MAO"] == "REC"
     assert predecessores["GRU"] == "SSA"
+
+def test_bfs_filmes():
+    grafo_filmes = {
+        "Filme A": ["Ator Ana", "Drama"],
+        "Ator Ana": ["Filme A", "Filme B"],
+        "Drama": ["Filme A", "Filme B", "Filme C"],
+        "Filme B": ["Ator Ana", "Drama"],
+        "Filme C": ["Drama"],
+    }
+
+    fontes = ["Filme A", "Ator Ana", "Filme C"]
+
+    for fonte in fontes:
+        ordem_visita, camadas, predecessores, ciclos = bfs_filmes(grafo_filmes, fonte)
+
+        assert ordem_visita[0] == fonte
+        assert camadas[fonte] == 0
+        assert predecessores[fonte] is None
+
+        assert len(ordem_visita) == len(grafo_filmes)
+
+        for no in grafo_filmes:
+            assert no in camadas
+
+        assert len(ciclos) > 0
