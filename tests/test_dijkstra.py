@@ -59,7 +59,7 @@ def main():
         print(f"Pronto! Você pode editar '{arquivo_rotas}' futuramente.\n")
 
     # 2. Construir o grafo
-    grafo = defaultdict(dict)
+        grafo = defaultdict(dict)
     try:
         with open(arquivo_adjacencias, 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)

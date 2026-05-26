@@ -1,4 +1,26 @@
+import heapq
 from collections import deque
+
+
+def calcular_graus(grafo):
+    return {no: len(vizinhos) for no, vizinhos in grafo.adj.items()}
+
+
+def calcular_densidade_ego(grafo, no):
+    vizinhos = set(grafo.adj[no].keys())
+    ego_nos = vizinhos | {no}
+    n = len(ego_nos)
+    if n < 2:
+        return 0.0
+    max_arestas = n * (n - 1) / 2
+    ego_list = list(ego_nos)
+    arestas_reais = sum(
+        1
+        for i in range(len(ego_list))
+        for j in range(i + 1, len(ego_list))
+        if ego_list[j] in grafo.adj[ego_list[i]]
+    )
+    return arestas_reais / max_arestas
 
 
 def bfs(grafo, aeroporto_inicial):
@@ -30,3 +52,22 @@ def bfs(grafo, aeroporto_inicial):
                 predecessores[aeroporto_vizinho] = aeroporto_atual
 
     return ordem_visita, niveis, predecessores
+
+def dijkstra(grafo, origem, destino):
+    fila = [(0.0, origem, [origem])]
+    visitados = set()
+    
+    while fila:
+        custo, no_atual, caminho = heapq.heappop(fila)
+        
+        if no_atual == destino:
+            return custo, caminho
+            
+        if no_atual not in visitados:
+            visitados.add(no_atual)
+            
+            for vizinho, peso in grafo.adj.get(no_atual, {}).items():
+                if vizinho not in visitados:
+                    heapq.heappush(fila, (custo + peso, vizinho, caminho + [vizinho]))
+                    
+    return float('inf'), []
