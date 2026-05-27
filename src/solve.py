@@ -9,12 +9,11 @@ import matplotlib.pyplot as plt
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from graphs.algorithms import dijkstra
-
 from graphs.io import carregar_aeroportos, carregar_grafo
 from graphs.graph import Grafo
 from graphs.metrics import metricas_subgrafo, ego_rede
-
 from pyvis.network import Network
+from viz import exportar_subgrafo_maior_grau
 
 def gerar_arquivo_adjacencias():
     df = carregar_aeroportos('data/aeroportos_data.csv')
@@ -164,19 +163,27 @@ def gerar_arvore_percurso(
         pasta_saida=pasta_saida,
     )
 
-def gerar_visualizacoes_avd(pasta_dados: str = 'out'):
+# Explorações e visualizações analíticas
+# Função auxiliar para carregar o arquivo ego_aeroportos.csv e validar sua existência.
+def _carregar_dados_ego(pasta_dados: str) -> pd.DataFrame | None:
+    
     caminho_csv = os.path.join(pasta_dados, 'ego_aeroportos.csv')
-    
     if not os.path.exists(caminho_csv):
-        print(f"Erro: {caminho_csv} não encontrado. Execute calcular_metricas_q3 primeiro.")
-        return
+        print(f"Erro: {caminho_csv} não encontrado. Execute calcular_metricas primeiro.")
+        return None
+    
+    try:
+        return pd.read_csv(caminho_csv)
+    except Exception as e:
+        print(f"Erro ao ler os dados de ego-rede: {e}")
+        return None
+    
+# VISUALIZAÇÃO 1: Distribuição de Graus (Histograma)
+def gerar_histograma_graus(pasta_dados: str = 'out'):
+    df_ego = _carregar_dados_ego(pasta_dados)
+    if df_ego is None: return
 
-    df_ego = pd.read_csv(caminho_csv)
-    
-    # --- VISUALIZAÇÃO 1: Distribuição de Graus (Histograma) ---
     plt.figure(figsize=(8, 5))
-    
-    # Contagem da frequência de cada grau ordenado de forma ascedente
     contagem_graus = df_ego['grau'].value_counts().sort_index()
     
     plt.bar(contagem_graus.index, 
@@ -199,7 +206,16 @@ def gerar_visualizacoes_avd(pasta_dados: str = 'out'):
     plt.close()
     print(f"[AVD] Histograma salvo em: {caminho_hist}")
 
-    # --- VISUALIZAÇÃO 2: Ranking de Aeroportos Mais Conectados (Barra Ordenada) ---
+# VISUALIZAÇÃO 2: Ranking de Aeroportos Mais Conectados (Barra Ordenada)
+def gerar_ranking_conectividade(pasta_dados: str = 'out'):
+    caminho_csv = os.path.join(pasta_dados, 'ego_aeroportos.csv')
+    
+    if not os.path.exists(caminho_csv):
+        print(f"Erro: {caminho_csv} não encontrado. Execute calcular_metricas primeiro.")
+        return
+
+    df_ego = pd.read_csv(caminho_csv)
+
     plt.figure(figsize=(10, 6))
     
     # Ordena os dados do menor para o maior (para que o maior fique no topo do gráfico horizontal)
@@ -209,14 +225,12 @@ def gerar_visualizacoes_avd(pasta_dados: str = 'out'):
     valores_norm = (df_ranking['grau'] - df_ranking['grau'].min()) / (df_ranking['grau'].max() - df_ranking['grau'].min())
     cores_gradient = plt.cm.Blues(valores_norm * 0.6 + 0.4) 
     
-    # Gráfico de barras horizontais
     plt.barh(df_ranking['aeroporto'], df_ranking['grau'], color=cores_gradient, edgecolor='none')
     
-    # Customização de AVD
     plt.title('Ranking de Aeroportos por Nível de Conectividade', fontsize=14, pad=15, fontweight='bold')
     plt.xlabel('Grau (Número de Interconexões)', fontsize=12)
     plt.ylabel('Aeroporto (IATA)', fontsize=12)
-    plt.grid(axis='x', linestyle='--', alpha=0.7) # Linhas de grade verticais para ajudar a ler o ranking
+    plt.grid(axis='x', linestyle='--', alpha=0.7)
     
     plt.tight_layout()
     caminho_barra = os.path.join(pasta_dados, 'ranking_aeroportos.png')
@@ -224,14 +238,24 @@ def gerar_visualizacoes_avd(pasta_dados: str = 'out'):
     plt.close()
     print(f"[AVD] Gráfico de barras salvo em: {caminho_barra}")
 
-def gerar_comparacao_regioes(pasta_dados: str = 'out'):
+# Função auxiliar para carregar as regioes
+def _carregar_dados_regioes(pasta_dados: str) -> list | None:
     caminho_json = os.path.join(pasta_dados, 'regioes.json')
     if not os.path.exists(caminho_json):
         print(f"Erro: {caminho_json} não encontrado. Execute calcular_metricas primeiro.")
-        return
+        return None
 
-    with open(caminho_json, 'r', encoding='utf-8') as f:
-        dados = json.load(f)
+    try:
+        with open(caminho_json, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Erro ao ler os dados das regiões: {e}")
+        return None
+
+# VISUALIZAÇÃO 3: Comparação entre Regiões
+def gerar_comparacao_regioes(pasta_dados: str = 'out'):
+    dados = _carregar_dados_regioes(pasta_dados)
+    if not dados: return
 
     regioes = [d['regiao'] for d in dados]
     ordens = [d['ordem'] for d in dados]
@@ -260,13 +284,13 @@ def gerar_comparacao_regioes(pasta_dados: str = 'out'):
     plt.close()
     print(f"[AVD] Comparação entre regiões salva em: {caminho}")
 
-
+# VISUALIZAÇÃO 4: Subgrafo dos aeroportos com maior grau 
 def gerar_subgrafo_maior_grau(
     caminho_aeroportos: str = 'data/aeroportos_data.csv',
     caminho_adjacencias: str = 'data/adjacencias_aeroportos.csv',
     pasta_saida: str = 'out',
 ) -> str:
-    from viz import exportar_subgrafo_maior_grau
+    
     return exportar_subgrafo_maior_grau(
         caminho_aeroportos=caminho_aeroportos,
         caminho_adjacencias=caminho_adjacencias,
@@ -290,13 +314,11 @@ def gerar_bfs_camadas(
 def main():
     try:
         gerar_arquivo_adjacencias()
-        calcular_rotas_dijkstra()
-        calcular_metricas_q3()
-        gerar_arvore_percurso_q7() #Inicializar o ponto 7
-        gerar_grafo_interativo()
         calcular_metricas()
         gerar_arvore_percurso()
-        gerar_visualizacoes_avd()
+        gerar_grafo_interativo()
+        gerar_histograma_graus()
+        gerar_ranking_conectividade()
         gerar_comparacao_regioes()
         gerar_subgrafo_maior_grau()
         gerar_bfs_camadas()
