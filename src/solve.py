@@ -96,7 +96,7 @@ def calcular_metricas(
     print(f"[Q3] ego_aeroportos.csv → {len(rows_ego)} aeroportos")
 
     return m_global, lista_regioes, rows_ego
-   
+
 def gerar_grafo_interativo():
     info_nos = {}
     try:
@@ -309,6 +309,10 @@ def gerar_bfs_camadas(
         caminho_adjacencias=caminho_adjacencias,
         pasta_saida=pasta_saida,
     )
+
+
+calcular_metricas_q3 = calcular_metricas
+gerar_arvore_percurso_q7 = gerar_arvore_percurso
 
 
 def main():

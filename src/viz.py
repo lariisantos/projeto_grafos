@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import heapq
 import html
 import json
 import math
@@ -10,6 +9,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from graphs.io import carregar_grafo
+from graphs.algorithms import dijkstra
 
 
 ROTAS_OBRIGATORIAS = [ #se precisar é só adicionar mais rotas
@@ -18,44 +18,21 @@ ROTAS_OBRIGATORIAS = [ #se precisar é só adicionar mais rotas
 ]
 
 
-def menor_caminho_dijkstra(grafo, origem: str, destino: str) -> tuple[float, list[str]]:
-    origem = origem.strip().upper()
-    destino = destino.strip().upper()
-
-    if origem not in grafo.adj:
-        raise ValueError(f"Aeroporto de origem não encontrado no grafo: {origem}")
-    if destino not in grafo.adj:
-        raise ValueError(f"Aeroporto de destino não encontrado no grafo: {destino}")
-
-    fila = [(0.0, origem, [origem])]
-    melhor_distancia = {origem: 0.0}
-
-    while fila:
-        custo_atual, no_atual, caminho = heapq.heappop(fila)
-
-        if no_atual == destino:
-            return custo_atual, caminho
-
-        if custo_atual > melhor_distancia.get(no_atual, float("inf")):
-            continue
-
-        for vizinho, peso in grafo.adj[no_atual].items():
-            novo_custo = custo_atual + float(peso)
-
-            if novo_custo < melhor_distancia.get(vizinho, float("inf")):
-                melhor_distancia[vizinho] = novo_custo
-                heapq.heappush(fila, (novo_custo, vizinho, caminho + [vizinho]))
-
-    return float("inf"), []
-
-
 def construir_subgrafo_percursos(grafo, rotas: list[tuple[str, str]]):
     caminhos = []
     arestas = set()
     nos = set()
 
     for origem, destino in rotas:
-        custo, caminho = menor_caminho_dijkstra(grafo, origem, destino)
+        origem = origem.strip().upper()
+        destino = destino.strip().upper()
+
+        if origem not in grafo.adj:
+            raise ValueError(f"Aeroporto de origem não encontrado no grafo: {origem}")
+        if destino not in grafo.adj:
+            raise ValueError(f"Aeroporto de destino não encontrado no grafo: {destino}")
+
+        custo, caminho = dijkstra(grafo, origem, destino)
 
         if not caminho:
             raise ValueError(f"Não existe caminho entre {origem} e {destino}.")
