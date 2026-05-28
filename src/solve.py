@@ -13,6 +13,8 @@ from graphs.io import carregar_aeroportos, carregar_grafo
 from graphs.graph import Grafo
 from graphs.metrics import metricas_subgrafo, ego_rede
 from analise_q10 import analise_avd
+from dashboard import gerar_dashboard
+from export_react import exportar_react_data, buildar_react
 
 from pyvis.network import Network
 
@@ -164,12 +166,26 @@ def calcular_metricas_q3(
     return m_global, lista_regioes, rows_ego
    
 def gerar_grafo_interativo():
+    # Paleta por regiao (fundo do no, borda, highlight)
+    CORES_VIS = {
+        "Nordeste":     {"background": "#E63946", "border": "#ff6b7a",
+                         "highlight": {"background": "#ff4d6d", "border": "#ff6b7a"}},
+        "Sudeste":      {"background": "#457B9D", "border": "#5a9cbf",
+                         "highlight": {"background": "#3b82f6", "border": "#5a9cbf"}},
+        "Sul":          {"background": "#2A9D8F", "border": "#3dbfb0",
+                         "highlight": {"background": "#10b981", "border": "#3dbfb0"}},
+        "Norte":        {"background": "#c9a72a", "border": "#E9C46A",
+                         "highlight": {"background": "#E9C46A", "border": "#f5d48a"}},
+        "Centro-Oeste": {"background": "#d4813a", "border": "#F4A261",
+                         "highlight": {"background": "#f97316", "border": "#F4A261"}},
+    }
+
     info_nos = {}
     try:
         with open('data/aeroportos_data.csv', 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             for row in reader:
-                info_nos[row['iata']] = {'regiao': row['regiao']}
+                info_nos[row['iata']] = {'regiao': row['regiao'], 'cidade': row.get('cidade', '')}
     except FileNotFoundError:
         pass
 
@@ -185,7 +201,13 @@ def gerar_grafo_interativo():
     except FileNotFoundError:
         pass
 
-    net = Network(height="750px", width="100%", bgcolor="#ffffff", font_color="black", select_menu=False, cdn_resources='remote')
+    net = Network(
+        height="100%", width="100%",
+        bgcolor="#07111f",
+        font_color="#e5eefc",
+        select_menu=False,
+        cdn_resources='remote',
+    )
 
     nos_adicionados = set()
     try:
@@ -195,22 +217,76 @@ def gerar_grafo_interativo():
                 u = row['origem']
                 v = row['destino']
                 peso = float(row['peso'])
-                
+                tipo  = row.get('tipo_conexao', 'regional')
+
                 for no in (u, v):
                     if no not in nos_adicionados:
-                        info = info_nos.get(no, {})
-                        regiao = info.get('regiao', 'Desconhecida')
-                        grau = info.get('grau', '?')
-                        densidade = round(float(info.get('densidade_ego', 0.0)), 3) if info.get('densidade_ego') else '?'
-                        
-                        tooltip = f"Aeroporto: {no}\n Região: {regiao}\n Grau: {grau}\n Densidade Ego: {densidade}"
-                        net.add_node(no, label=no, title=tooltip)
+                        info    = info_nos.get(no, {})
+                        regiao  = info.get('regiao', 'Desconhecida')
+                        grau    = info.get('grau', '?')
+                        dens    = round(float(info.get('densidade_ego', 0.0)), 3) \
+                                  if info.get('densidade_ego') else '?'
+                        cidade  = info.get('cidade', '')
+                        cor     = CORES_VIS.get(regiao, {
+                            "background": "#475569", "border": "#64748b",
+                            "highlight": {"background": "#64748b", "border": "#94a3b8"},
+                        })
+                        tooltip = (
+                            f"<b style='font-size:15px'>{no}</b>"
+                            f"{'<br>' + cidade if cidade else ''}"
+                            f"<br>Regiao: {regiao}"
+                            f"<br>Grau: {grau}"
+                            f"<br>Densidade ego: {dens}"
+                        )
+                        net.add_node(
+                            no, label=no, title=tooltip,
+                            color=cor,
+                            font={"color": "#ffffff", "size": 15, "bold": True},
+                            size=22,
+                            borderWidth=2,
+                            shadow=True,
+                        )
                         nos_adicionados.add(no)
-                
-                net.add_edge(u, v, value=peso)
+
+                # cor da aresta por tipo
+                edge_cor = {
+                    "hub_nacional":  "#60a5fa",
+                    "regional_hub":  "#94a3b8",
+                    "regional":      "#334155",
+                }.get(tipo, "#334155")
+
+                net.add_edge(
+                    u, v, value=peso,
+                    color={"color": edge_cor, "highlight": "#93c5fd", "opacity": 0.75},
+                    width=peso * 1.4,
+                    smooth={"type": "continuous"},
+                )
     except FileNotFoundError:
-        print("Erro: Arquivo adjacencias_aeroportos.csv não encontrado.")
+        print("Erro: Arquivo adjacencias_aeroportos.csv nao encontrado.")
         return
+
+    net.set_options(json.dumps({
+        "physics": {
+            "solver": "forceAtlas2Based",
+            "forceAtlas2Based": {
+                "gravitationalConstant": -55,
+                "centralGravity": 0.006,
+                "springLength": 220,
+                "springConstant": 0.18,
+                "damping": 0.4,
+                "avoidOverlap": 0.6,
+            },
+            "minVelocity": 0.5,
+            "stabilization": {"iterations": 180},
+        },
+        "interaction": {
+            "hover": True,
+            "tooltipDelay": 80,
+            "hideEdgesOnDrag": True,
+        },
+        "nodes": {"shadow": {"enabled": True, "color": "rgba(0,0,0,0.45)", "size": 12}},
+        "edges": {"smooth": {"type": "continuous"}, "shadow": False},
+    }))
 
     os.makedirs('out', exist_ok=True)
     net.write_html('out/grafo_interativo.html')
@@ -237,6 +313,9 @@ def main():
         gerar_arvore_percurso_q7() #Inicializar o ponto 7
         gerar_grafo_interativo()
         analise_avd()              #Ponto 10
+        gerar_dashboard()          #Dashboard HTML (legado)
+        exportar_react_data()      #Exporta dados para React
+        buildar_react()            #Build do app React
     except Exception as e:
         print(f"Falha na execução: {e}")
         raise
