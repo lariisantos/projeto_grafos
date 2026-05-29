@@ -14,7 +14,9 @@ from graphs.graph import Grafo
 from graphs.metrics import metricas_subgrafo, ego_rede
 from pyvis.network import Network
 from viz import exportar_subgrafo_maior_grau
+from viz import exportar_bfs_camadas
 
+# Cria o arquivo adjacencias
 def gerar_arquivo_adjacencias():
     df = carregar_aeroportos('data/aeroportos_data.csv')
 
@@ -297,13 +299,13 @@ def gerar_subgrafo_maior_grau(
         pasta_saida=pasta_saida,
     )
 
-
+# VISUALIZAÇÃO 5: Visualização de camadas via BFS  
 def gerar_bfs_camadas(
     caminho_aeroportos: str = 'data/aeroportos_data.csv',
     caminho_adjacencias: str = 'data/adjacencias_aeroportos.csv',
     pasta_saida: str = 'out',
 ) -> str:
-    from viz import exportar_bfs_camadas
+    
     return exportar_bfs_camadas(
         caminho_aeroportos=caminho_aeroportos,
         caminho_adjacencias=caminho_adjacencias,

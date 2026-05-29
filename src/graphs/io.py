@@ -4,9 +4,12 @@ io.py — carregar/validar o CSV fornecido
 import pandas as pd
 import os
 
+from graphs.graph import Grafo
 
 def carregar_grafo(caminho_aeroportos: str, caminho_adjacencias: str):
-    from graphs.graph import Grafo
+    """
+    Constroi um Grafo a partir de aeroportos_data.csv e adjacencias_aeroportos.csv.
+    """
 
     df = carregar_aeroportos(caminho_aeroportos)
 
