@@ -4,11 +4,11 @@ import os
 import sys
 
 import pandas as pd
+import matplotlib.pyplot as plt
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from graphs.algorithms import dijkstra
-
 from graphs.io import carregar_aeroportos, carregar_grafo
 from graphs.graph import Grafo
 from graphs.metrics import metricas_subgrafo, ego_rede
@@ -17,6 +17,7 @@ from dashboard import gerar_dashboard
 from export_react import exportar_react_data, buildar_react
 
 from pyvis.network import Network
+from viz import exportar_subgrafo_maior_grau
 
 def gerar_arquivo_adjacencias():
     df = carregar_aeroportos('data/aeroportos_data.csv')
@@ -66,7 +67,7 @@ def gerar_arquivo_adjacencias():
 def calcular_rotas_dijkstra():
     grafo, _ = carregar_grafo('data/aeroportos_data.csv', 'data/adjacencias_aeroportos.csv')
     rotas = []
-    
+
     try:
         with open('data/rotas.csv', 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
@@ -82,10 +83,10 @@ def calcular_rotas_dijkstra():
             resultados.append([orig, dest, float('inf'), "Sem caminho viável"])
             print(f"[Q6]   {orig} -> {dest:3s} -> Erro: Aeroporto não encontrado no grafo.")
             continue
-            
+
         custo, caminho = dijkstra(grafo, orig, dest)
         str_caminho = " -> ".join(caminho) if caminho else "Sem caminho viável"
-        
+
         resultados.append([orig, dest, custo, str_caminho])
         print(f"[Q6]   {orig} -> {dest:3s} -> custo={custo:.1f}, caminho=[{str_caminho}]")
 
@@ -95,40 +96,11 @@ def calcular_rotas_dijkstra():
         writer.writerow(['origem', 'destino', 'custo', 'caminho'])
         for res in resultados:
             writer.writerow(res)
-            
+
     print(f"[Q6] distancias_rotas.csv -> {len(resultados)} rotas processadas")
-    grafo, _ = carregar_grafo('data/aeroportos_data.csv', 'data/adjacencias_aeroportos.csv')
-    rotas = []
-    
-    try:
-        with open('data/rotas.csv', 'r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                if row.get('origem') and row.get('destino'):
-                    rotas.append((row['origem'].strip(), row['destino'].strip()))
-    except FileNotFoundError:
-        pass
-
-    resultados = []
-    for orig, dest in rotas:
-        if orig not in grafo.adj or dest not in grafo.adj:
-            resultados.append([orig, dest, float('inf'), "Sem caminho viável"])
-            continue
-            
-        custo, caminho = dijkstra(grafo, orig, dest)
-        str_caminho = " -> ".join(caminho) if caminho else "Sem caminho viável"
-        
-        resultados.append([orig, dest, custo, str_caminho])
-
-    os.makedirs('out', exist_ok=True)
-    with open('out/distancias_rotas.csv', 'w', newline='', encoding='utf-8') as f:
-        writer = csv.writer(f)
-        writer.writerow(['origem', 'destino', 'custo', 'caminho'])
-        for res in resultados:
-            writer.writerow(res)
 
 
-def calcular_metricas_q3(
+def calcular_metricas(
     caminho_aeroportos: str = 'data/aeroportos_data.csv',
     caminho_adjacencias: str = 'data/adjacencias_aeroportos.csv',
     pasta_saida: str = 'out',
@@ -164,7 +136,7 @@ def calcular_metricas_q3(
     print(f"[Q3] ego_aeroportos.csv -> {len(rows_ego)} aeroportos")
 
     return m_global, lista_regioes, rows_ego
-   
+
 def gerar_grafo_interativo():
     # Paleta por regiao (fundo do no, borda, highlight)
     CORES_VIS = {
@@ -292,7 +264,7 @@ def gerar_grafo_interativo():
     net.write_html('out/grafo_interativo.html')
     print("[Q9] grafo_interativo.html -> Gerado com sucesso")
 
-def gerar_arvore_percurso_q7( #Ponto 7
+def gerar_arvore_percurso( 
     caminho_aeroportos: str = 'data/aeroportos_data.csv',
     caminho_adjacencias: str = 'data/adjacencias_aeroportos.csv',
     pasta_saida: str = 'out',
@@ -305,13 +277,169 @@ def gerar_arvore_percurso_q7( #Ponto 7
         pasta_saida=pasta_saida,
     )
 
+# Explorações e visualizações analíticas
+# Função auxiliar para carregar o arquivo ego_aeroportos.csv e validar sua existência.
+def _carregar_dados_ego(pasta_dados: str) -> pd.DataFrame | None:
+    
+    caminho_csv = os.path.join(pasta_dados, 'ego_aeroportos.csv')
+    if not os.path.exists(caminho_csv):
+        print(f"Erro: {caminho_csv} não encontrado. Execute calcular_metricas primeiro.")
+        return None
+    
+    try:
+        return pd.read_csv(caminho_csv)
+    except Exception as e:
+        print(f"Erro ao ler os dados de ego-rede: {e}")
+        return None
+    
+# VISUALIZAÇÃO 1: Distribuição de Graus (Histograma)
+def gerar_histograma_graus(pasta_dados: str = 'out'):
+    df_ego = _carregar_dados_ego(pasta_dados)
+    if df_ego is None: return
+
+    plt.figure(figsize=(8, 5))
+    contagem_graus = df_ego['grau'].value_counts().sort_index()
+    
+    plt.bar(contagem_graus.index, 
+            contagem_graus.values, 
+            color='#4c72b0', 
+            edgecolor='black', 
+            alpha=0.9, 
+            width=0.8)
+    
+    plt.title('Distribuição de Graus dos Aeroportos', fontsize=14, pad=15, fontweight='bold')
+    plt.xlabel('Grau (Número de Interconexões)', fontsize=12)
+    plt.ylabel('Frequência (Número de Aeroportos)', fontsize=12)
+    
+    plt.xticks(range(int(df_ego['grau'].min()), int(df_ego['grau'].max()) + 1))
+    plt.grid(axis='y', linestyle='--', alpha=0.7) # Linhas de grade na horizontal
+    
+    plt.tight_layout()
+    caminho_hist = os.path.join(pasta_dados, 'distribuicao_graus.png')
+    plt.savefig(caminho_hist, dpi=300)
+    plt.close()
+    print(f"[AVD] Histograma salvo em: {caminho_hist}")
+
+# VISUALIZAÇÃO 2: Ranking de Aeroportos Mais Conectados (Barra Ordenada)
+def gerar_ranking_conectividade(pasta_dados: str = 'out'):
+    caminho_csv = os.path.join(pasta_dados, 'ego_aeroportos.csv')
+    
+    if not os.path.exists(caminho_csv):
+        print(f"Erro: {caminho_csv} não encontrado. Execute calcular_metricas primeiro.")
+        return
+
+    df_ego = pd.read_csv(caminho_csv)
+
+    plt.figure(figsize=(10, 6))
+    
+    # Ordena os dados do menor para o maior (para que o maior fique no topo do gráfico horizontal)
+    df_ranking = df_ego.sort_values(by='grau', ascending=True)
+    
+    # Criando um degradê de azul usando um colormap do Matplotlib
+    valores_norm = (df_ranking['grau'] - df_ranking['grau'].min()) / (df_ranking['grau'].max() - df_ranking['grau'].min())
+    cores_gradient = plt.cm.Blues(valores_norm * 0.6 + 0.4) 
+    
+    plt.barh(df_ranking['aeroporto'], df_ranking['grau'], color=cores_gradient, edgecolor='none')
+    
+    plt.title('Ranking de Aeroportos por Nível de Conectividade', fontsize=14, pad=15, fontweight='bold')
+    plt.xlabel('Grau (Número de Interconexões)', fontsize=12)
+    plt.ylabel('Aeroporto (IATA)', fontsize=12)
+    plt.grid(axis='x', linestyle='--', alpha=0.7)
+    
+    plt.tight_layout()
+    caminho_barra = os.path.join(pasta_dados, 'ranking_aeroportos.png')
+    plt.savefig(caminho_barra, dpi=300)
+    plt.close()
+    print(f"[AVD] Gráfico de barras salvo em: {caminho_barra}")
+
+# Função auxiliar para carregar as regioes
+def _carregar_dados_regioes(pasta_dados: str) -> list | None:
+    caminho_json = os.path.join(pasta_dados, 'regioes.json')
+    if not os.path.exists(caminho_json):
+        print(f"Erro: {caminho_json} não encontrado. Execute calcular_metricas primeiro.")
+        return None
+
+    try:
+        with open(caminho_json, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Erro ao ler os dados das regiões: {e}")
+        return None
+
+# VISUALIZAÇÃO 3: Comparação entre Regiões
+def gerar_comparacao_regioes(pasta_dados: str = 'out'):
+    dados = _carregar_dados_regioes(pasta_dados)
+    if not dados: return
+
+    regioes = [d['regiao'] for d in dados]
+    ordens = [d['ordem'] for d in dados]
+    tamanhos = [d['tamanho'] for d in dados]
+    densidades = [d['densidade'] for d in dados]
+
+    cores = ['#4c72b0', '#dd8452', '#55a868', '#c44e52', '#8172b3']
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+    fig.suptitle('Comparação entre Regiões', fontsize=14, fontweight='bold')
+
+    for ax, valores, titulo, ylabel in zip(
+        axes,
+        [ordens, tamanhos, densidades],
+        ['Ordem (Nós)', 'Tamanho (Arestas)', 'Densidade'],
+        ['Quantidade', 'Quantidade', 'Valor'],
+    ):
+        ax.bar(regioes, valores, color=cores[:len(regioes)], edgecolor='black', alpha=0.9)
+        ax.set_title(titulo, fontsize=12)
+        ax.set_ylabel(ylabel, fontsize=11)
+        ax.tick_params(axis='x', rotation=20)
+        ax.grid(axis='y', linestyle='--', alpha=0.7)
+
+    plt.tight_layout()
+    caminho = os.path.join(pasta_dados, 'comparacao_regioes.png')
+    plt.savefig(caminho, dpi=300, bbox_inches='tight')
+    plt.close()
+    print(f"[AVD] Comparação entre regiões salva em: {caminho}")
+
+# VISUALIZAÇÃO 4: Subgrafo dos aeroportos com maior grau 
+def gerar_subgrafo_maior_grau(
+    caminho_aeroportos: str = 'data/aeroportos_data.csv',
+    caminho_adjacencias: str = 'data/adjacencias_aeroportos.csv',
+    pasta_saida: str = 'out',
+) -> str:
+    
+    return exportar_subgrafo_maior_grau(
+        caminho_aeroportos=caminho_aeroportos,
+        caminho_adjacencias=caminho_adjacencias,
+        pasta_saida=pasta_saida,
+    )
+
+
+def gerar_bfs_camadas(
+    caminho_aeroportos: str = 'data/aeroportos_data.csv',
+    caminho_adjacencias: str = 'data/adjacencias_aeroportos.csv',
+    pasta_saida: str = 'out',
+) -> str:
+    from viz import exportar_bfs_camadas
+    return exportar_bfs_camadas(
+        caminho_aeroportos=caminho_aeroportos,
+        caminho_adjacencias=caminho_adjacencias,
+        pasta_saida=pasta_saida,
+    )
+
+
+calcular_metricas_q3 = calcular_metricas
+gerar_arvore_percurso_q7 = gerar_arvore_percurso
+
+
 def main():
     try:
         gerar_arquivo_adjacencias()
-        calcular_rotas_dijkstra()
-        calcular_metricas_q3()
-        gerar_arvore_percurso_q7() #Inicializar o ponto 7
+        calcular_metricas()
+        gerar_arvore_percurso()
         gerar_grafo_interativo()
+        gerar_histograma_graus()
+        gerar_ranking_conectividade()
+        gerar_comparacao_regioes()
+        gerar_subgrafo_maior_grau()
+        gerar_bfs_camadas()
         analise_avd()              #Ponto 10
         gerar_dashboard()          #Dashboard HTML (legado)
         exportar_react_data()      #Exporta dados para React
