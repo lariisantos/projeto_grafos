@@ -4,10 +4,14 @@ e copia os HTMLs das redes para dashboard/public/.
 """
 import csv
 import json
+import math
 import os
 import shutil
 import subprocess
 import sys
+
+# Paleta usada para colorir cada percurso no RouteTree
+ROTA_CORES = ["#3b82f6", "#ff4d6d", "#2dd4bf", "#fbbf24", "#a78bfa", "#f97316", "#34d399", "#f472b6"]
 
 BASE     = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT      = os.path.join(BASE, "out")
@@ -34,9 +38,11 @@ def _load():
 
     # adiciona regiao ao ego
     regioes_map = {}
+    cidades_map = {}
     with open(os.path.join(DATA, "aeroportos_data.csv"), encoding="utf-8") as f:
         for row in csv.DictReader(f):
             regioes_map[row["iata"]] = row["regiao"]
+            cidades_map[row["iata"]] = row["cidade"]
     for a in ego:
         a["regiao"] = regioes_map.get(a["aeroporto"], "Desconhecida")
 
@@ -50,7 +56,7 @@ def _load():
                 "peso":            float(row["peso"]),
             })
 
-    return glob, regioes, ego, adj
+    return glob, regioes, ego, adj, regioes_map, cidades_map
 
 
 def _compute_charts(glob, regioes, ego, adj):
@@ -113,23 +119,114 @@ def _compute_charts(glob, regioes, ego, adj):
     return hist_data, reg_data, composicao, hubs, regioes_chart
 
 
+def _build_grafo_dados(ego, adj, cidades_map):
+    """Monta {nodes, edges} para o componente NetworkGraph."""
+    nodes = [
+        {
+            "id":           a["aeroporto"],
+            "regiao":       a["regiao"],
+            "cidade":       cidades_map.get(a["aeroporto"], ""),
+            "grau":         a["grau"],
+            "densidadeEgo": a["densidade_ego"],
+        }
+        for a in ego
+    ]
+    edges = [
+        {
+            "source": e["origem"],
+            "target": e["destino"],
+            "tipo":   e["tipo_conexao"],
+            "peso":   e["peso"],
+        }
+        for e in adj
+    ]
+    return {"nodes": nodes, "edges": edges}
+
+
+def _build_percursos_dados(regioes_map, cidades_map, adj):
+    """Monta {nodes, edges, caminhos} para o componente RouteTree.
+
+    Lê os caminhos minimos ja calculados em out/distancias_rotas.csv e
+    posiciona os nos envolvidos em um layout circular (x/y fixos)."""
+    # peso de cada aresta (nao-direcionado)
+    peso_map = {frozenset((e["origem"], e["destino"])): e["peso"] for e in adj}
+
+    caminhos = []
+    csv_path = os.path.join(OUT, "distancias_rotas.csv")
+    if os.path.exists(csv_path):
+        with open(csv_path, encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                if "->" not in row["caminho"]:
+                    continue  # rota sem caminho viavel
+                seq = [p.strip() for p in row["caminho"].split("->")]
+                caminhos.append({
+                    "origem":  row["origem"],
+                    "destino": row["destino"],
+                    "caminho": seq,
+                    "custo":   float(row["custo"]),
+                    "cor":     ROTA_CORES[len(caminhos) % len(ROTA_CORES)],
+                })
+
+    # nos unicos, na ordem em que aparecem
+    node_ids = []
+    for c in caminhos:
+        for nid in c["caminho"]:
+            if nid not in node_ids:
+                node_ids.append(nid)
+
+    # layout circular
+    W, H = 800, 460
+    cx, cy, R = W / 2, H / 2, min(W, H) * 0.36
+    total = max(len(node_ids), 1)
+    nodes = []
+    for idx, nid in enumerate(node_ids):
+        angle = (idx / total) * 2 * math.pi - math.pi / 2
+        nodes.append({
+            "id":     nid,
+            "x":      round(cx + R * math.cos(angle), 1),
+            "y":      round(cy + R * math.sin(angle), 1),
+            "regiao": regioes_map.get(nid, "Desconhecida"),
+            "label":  cidades_map.get(nid, ""),
+        })
+
+    # arestas dos trechos consecutivos de cada caminho
+    edges, seen = [], set()
+    for c in caminhos:
+        for a, b in zip(c["caminho"], c["caminho"][1:]):
+            if (a, b) in seen:
+                continue
+            seen.add((a, b))
+            edges.append({
+                "source": a,
+                "target": b,
+                "color":  c["cor"],
+                "weight": peso_map.get(frozenset((a, b)), 1.0),
+            })
+
+    return {"nodes": nodes, "edges": edges, "caminhos": caminhos}
+
+
 def exportar_react_data():
     os.makedirs(DASH_SRC, exist_ok=True)
     os.makedirs(DASH_PUB, exist_ok=True)
 
-    glob, regioes, ego, adj = _load()
+    glob, regioes, ego, adj, regioes_map, cidades_map = _load()
     hist_data, reg_data, composicao, hubs, regioes_chart = _compute_charts(
         glob, regioes, ego, adj
     )
+    grafo_dados     = _build_grafo_dados(ego, adj, cidades_map)
+    percursos_dados = _build_percursos_dados(regioes_map, cidades_map, adj)
 
     payload = {
-        "global":        glob,
-        "regioes":       regioes_chart,
-        "egoAeroportos": ego,
-        "histData":      hist_data,
-        "regData":       reg_data,
-        "composicao":    composicao,
-        "hubs":          hubs,
+        "global":         glob,
+        "regioes":        regioes_chart,
+        "egoAeroportos":  ego,
+        "histData":       hist_data,
+        "regData":        reg_data,
+        "composicao":     composicao,
+        "hubs":           hubs,
+        "grafoDados":     grafo_dados,
+        "percursosDados": percursos_dados,
     }
     data_js = (
         "// Gerado automaticamente por export_react.py -- nao edite manualmente\n"

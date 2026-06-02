@@ -49,8 +49,7 @@ export const DATA = {
       "ordem_ego": 4,
       "tamanho_ego": 6,
       "densidade_ego": 1.0,
-      "regiao": "Norte",
-      "cidade": "Belém"
+      "regiao": "Norte"
     },
     {
       "aeroporto": "BSB",
@@ -58,8 +57,7 @@ export const DATA = {
       "ordem_ego": 6,
       "tamanho_ego": 11,
       "densidade_ego": 0.733333,
-      "regiao": "Centro-Oeste",
-      "cidade": "Brasília"
+      "regiao": "Centro-Oeste"
     },
     {
       "aeroporto": "CGH",
@@ -67,8 +65,7 @@ export const DATA = {
       "ordem_ego": 5,
       "tamanho_ego": 10,
       "densidade_ego": 1.0,
-      "regiao": "Sudeste",
-      "cidade": "São Paulo"
+      "regiao": "Sudeste"
     },
     {
       "aeroporto": "CNF",
@@ -76,8 +73,7 @@ export const DATA = {
       "ordem_ego": 5,
       "tamanho_ego": 10,
       "densidade_ego": 1.0,
-      "regiao": "Sudeste",
-      "cidade": "Belo Horizonte"
+      "regiao": "Sudeste"
     },
     {
       "aeroporto": "CWB",
@@ -85,8 +81,7 @@ export const DATA = {
       "ordem_ego": 3,
       "tamanho_ego": 3,
       "densidade_ego": 1.0,
-      "regiao": "Sul",
-      "cidade": "Curitiba"
+      "regiao": "Sul"
     },
     {
       "aeroporto": "FLN",
@@ -94,8 +89,7 @@ export const DATA = {
       "ordem_ego": 3,
       "tamanho_ego": 3,
       "densidade_ego": 1.0,
-      "regiao": "Sul",
-      "cidade": "Florianópolis"
+      "regiao": "Sul"
     },
     {
       "aeroporto": "FOR",
@@ -103,8 +97,7 @@ export const DATA = {
       "ordem_ego": 6,
       "tamanho_ego": 15,
       "densidade_ego": 1.0,
-      "regiao": "Nordeste",
-      "cidade": "Fortaleza"
+      "regiao": "Nordeste"
     },
     {
       "aeroporto": "GIG",
@@ -112,8 +105,7 @@ export const DATA = {
       "ordem_ego": 5,
       "tamanho_ego": 10,
       "densidade_ego": 1.0,
-      "regiao": "Sudeste",
-      "cidade": "Rio de Janeiro"
+      "regiao": "Sudeste"
     },
     {
       "aeroporto": "GRU",
@@ -121,8 +113,7 @@ export const DATA = {
       "ordem_ego": 9,
       "tamanho_ego": 20,
       "densidade_ego": 0.555556,
-      "regiao": "Sudeste",
-      "cidade": "São Paulo"
+      "regiao": "Sudeste"
     },
     {
       "aeroporto": "GYN",
@@ -130,8 +121,7 @@ export const DATA = {
       "ordem_ego": 2,
       "tamanho_ego": 1,
       "densidade_ego": 1.0,
-      "regiao": "Centro-Oeste",
-      "cidade": "Goiânia"
+      "regiao": "Centro-Oeste"
     },
     {
       "aeroporto": "JPA",
@@ -139,8 +129,7 @@ export const DATA = {
       "ordem_ego": 6,
       "tamanho_ego": 15,
       "densidade_ego": 1.0,
-      "regiao": "Nordeste",
-      "cidade": "João Pessoa"
+      "regiao": "Nordeste"
     },
     {
       "aeroporto": "MAO",
@@ -148,8 +137,7 @@ export const DATA = {
       "ordem_ego": 8,
       "tamanho_ego": 16,
       "densidade_ego": 0.571429,
-      "regiao": "Norte",
-      "cidade": "Manaus"
+      "regiao": "Norte"
     },
     {
       "aeroporto": "NAT",
@@ -157,8 +145,7 @@ export const DATA = {
       "ordem_ego": 6,
       "tamanho_ego": 15,
       "densidade_ego": 1.0,
-      "regiao": "Nordeste",
-      "cidade": "Natal"
+      "regiao": "Nordeste"
     },
     {
       "aeroporto": "POA",
@@ -166,8 +153,7 @@ export const DATA = {
       "ordem_ego": 7,
       "tamanho_ego": 13,
       "densidade_ego": 0.619048,
-      "regiao": "Sul",
-      "cidade": "Porto Alegre"
+      "regiao": "Sul"
     },
     {
       "aeroporto": "PVH",
@@ -175,8 +161,7 @@ export const DATA = {
       "ordem_ego": 4,
       "tamanho_ego": 6,
       "densidade_ego": 1.0,
-      "regiao": "Norte",
-      "cidade": "Porto Velho"
+      "regiao": "Norte"
     },
     {
       "aeroporto": "RBR",
@@ -184,8 +169,7 @@ export const DATA = {
       "ordem_ego": 4,
       "tamanho_ego": 6,
       "densidade_ego": 1.0,
-      "regiao": "Norte",
-      "cidade": "Rio Branco"
+      "regiao": "Norte"
     },
     {
       "aeroporto": "REC",
@@ -193,8 +177,7 @@ export const DATA = {
       "ordem_ego": 10,
       "tamanho_ego": 25,
       "densidade_ego": 0.555556,
-      "regiao": "Nordeste",
-      "cidade": "Recife"
+      "regiao": "Nordeste"
     },
     {
       "aeroporto": "SSA",
@@ -202,8 +185,7 @@ export const DATA = {
       "ordem_ego": 6,
       "tamanho_ego": 15,
       "densidade_ego": 1.0,
-      "regiao": "Nordeste",
-      "cidade": "Salvador"
+      "regiao": "Nordeste"
     },
     {
       "aeroporto": "THE",
@@ -211,8 +193,7 @@ export const DATA = {
       "ordem_ego": 6,
       "tamanho_ego": 15,
       "densidade_ego": 1.0,
-      "regiao": "Nordeste",
-      "cidade": "Teresina"
+      "regiao": "Nordeste"
     },
     {
       "aeroporto": "VIX",
@@ -220,8 +201,7 @@ export const DATA = {
       "ordem_ego": 5,
       "tamanho_ego": 10,
       "densidade_ego": 1.0,
-      "regiao": "Sudeste",
-      "cidade": "Vitória"
+      "regiao": "Sudeste"
     }
   ],
   "histData": [
@@ -572,141 +552,141 @@ export const DATA = {
     "nodes": [
       {
         "id": "BEL",
-        "cidade": "Belém",
         "regiao": "Norte",
+        "cidade": "Belém",
         "grau": 3,
         "densidadeEgo": 1.0
       },
       {
         "id": "BSB",
-        "cidade": "Brasília",
         "regiao": "Centro-Oeste",
+        "cidade": "Brasília",
         "grau": 5,
         "densidadeEgo": 0.733333
       },
       {
         "id": "CGH",
-        "cidade": "São Paulo",
         "regiao": "Sudeste",
+        "cidade": "São Paulo",
         "grau": 4,
         "densidadeEgo": 1.0
       },
       {
         "id": "CNF",
-        "cidade": "Belo Horizonte",
         "regiao": "Sudeste",
+        "cidade": "Belo Horizonte",
         "grau": 4,
         "densidadeEgo": 1.0
       },
       {
         "id": "CWB",
-        "cidade": "Curitiba",
         "regiao": "Sul",
+        "cidade": "Curitiba",
         "grau": 2,
         "densidadeEgo": 1.0
       },
       {
         "id": "FLN",
-        "cidade": "Florianópolis",
         "regiao": "Sul",
+        "cidade": "Florianópolis",
         "grau": 2,
         "densidadeEgo": 1.0
       },
       {
         "id": "FOR",
-        "cidade": "Fortaleza",
         "regiao": "Nordeste",
+        "cidade": "Fortaleza",
         "grau": 5,
         "densidadeEgo": 1.0
       },
       {
         "id": "GIG",
-        "cidade": "Rio de Janeiro",
         "regiao": "Sudeste",
+        "cidade": "Rio de Janeiro",
         "grau": 4,
         "densidadeEgo": 1.0
       },
       {
         "id": "GRU",
-        "cidade": "São Paulo",
         "regiao": "Sudeste",
+        "cidade": "São Paulo",
         "grau": 8,
         "densidadeEgo": 0.555556
       },
       {
         "id": "GYN",
-        "cidade": "Goiânia",
         "regiao": "Centro-Oeste",
+        "cidade": "Goiânia",
         "grau": 1,
         "densidadeEgo": 1.0
       },
       {
         "id": "JPA",
-        "cidade": "João Pessoa",
         "regiao": "Nordeste",
+        "cidade": "João Pessoa",
         "grau": 5,
         "densidadeEgo": 1.0
       },
       {
         "id": "MAO",
-        "cidade": "Manaus",
         "regiao": "Norte",
+        "cidade": "Manaus",
         "grau": 7,
         "densidadeEgo": 0.571429
       },
       {
         "id": "NAT",
-        "cidade": "Natal",
         "regiao": "Nordeste",
+        "cidade": "Natal",
         "grau": 5,
         "densidadeEgo": 1.0
       },
       {
         "id": "POA",
-        "cidade": "Porto Alegre",
         "regiao": "Sul",
+        "cidade": "Porto Alegre",
         "grau": 6,
         "densidadeEgo": 0.619048
       },
       {
         "id": "PVH",
-        "cidade": "Porto Velho",
         "regiao": "Norte",
+        "cidade": "Porto Velho",
         "grau": 3,
         "densidadeEgo": 1.0
       },
       {
         "id": "RBR",
-        "cidade": "Rio Branco",
         "regiao": "Norte",
+        "cidade": "Rio Branco",
         "grau": 3,
         "densidadeEgo": 1.0
       },
       {
         "id": "REC",
-        "cidade": "Recife",
         "regiao": "Nordeste",
+        "cidade": "Recife",
         "grau": 9,
         "densidadeEgo": 0.555556
       },
       {
         "id": "SSA",
-        "cidade": "Salvador",
         "regiao": "Nordeste",
+        "cidade": "Salvador",
         "grau": 5,
         "densidadeEgo": 1.0
       },
       {
         "id": "THE",
-        "cidade": "Teresina",
         "regiao": "Nordeste",
+        "cidade": "Teresina",
         "grau": 5,
         "densidadeEgo": 1.0
       },
       {
         "id": "VIX",
-        "cidade": "Vitória",
         "regiao": "Sudeste",
+        "cidade": "Vitória",
         "grau": 4,
         "densidadeEgo": 1.0
       }
@@ -987,93 +967,381 @@ export const DATA = {
   "percursosDados": {
     "nodes": [
       {
-        "id": "CGH",
-        "label": "CGH - São Paulo",
-        "cidade": "São Paulo",
-        "regiao": "Sudeste",
-        "x": 590,
-        "y": 345
-      },
-      {
-        "id": "GRU",
-        "label": "GRU - São Paulo",
-        "cidade": "São Paulo",
-        "regiao": "Sudeste",
-        "x": 360,
-        "y": 345
-      },
-      {
-        "id": "MAO",
-        "label": "MAO - Manaus",
-        "cidade": "Manaus",
-        "regiao": "Norte",
-        "x": 130,
-        "y": 345
+        "id": "REC",
+        "x": 400.0,
+        "y": 64.4,
+        "regiao": "Nordeste",
+        "label": "Recife"
       },
       {
         "id": "POA",
-        "label": "POA - Porto Alegre",
-        "cidade": "Porto Alegre",
+        "x": 451.2,
+        "y": 72.5,
         "regiao": "Sul",
-        "x": 360,
-        "y": 135
+        "label": "Porto Alegre"
       },
       {
-        "id": "REC",
-        "label": "REC - Recife",
-        "cidade": "Recife",
+        "id": "MAO",
+        "x": 497.3,
+        "y": 96.0,
+        "regiao": "Norte",
+        "label": "Manaus"
+      },
+      {
+        "id": "GRU",
+        "x": 534.0,
+        "y": 132.7,
+        "regiao": "Sudeste",
+        "label": "São Paulo"
+      },
+      {
+        "id": "CGH",
+        "x": 557.5,
+        "y": 178.8,
+        "regiao": "Sudeste",
+        "label": "São Paulo"
+      },
+      {
+        "id": "BSB",
+        "x": 565.6,
+        "y": 230.0,
+        "regiao": "Centro-Oeste",
+        "label": "Brasília"
+      },
+      {
+        "id": "FLN",
+        "x": 557.5,
+        "y": 281.2,
+        "regiao": "Sul",
+        "label": "Florianópolis"
+      },
+      {
+        "id": "FOR",
+        "x": 534.0,
+        "y": 327.3,
         "regiao": "Nordeste",
-        "x": 130,
-        "y": 135
+        "label": "Fortaleza"
+      },
+      {
+        "id": "CWB",
+        "x": 497.3,
+        "y": 364.0,
+        "regiao": "Sul",
+        "label": "Curitiba"
+      },
+      {
+        "id": "GYN",
+        "x": 451.2,
+        "y": 387.5,
+        "regiao": "Centro-Oeste",
+        "label": "Goiânia"
+      },
+      {
+        "id": "VIX",
+        "x": 400.0,
+        "y": 395.6,
+        "regiao": "Sudeste",
+        "label": "Vitória"
+      },
+      {
+        "id": "CNF",
+        "x": 348.8,
+        "y": 387.5,
+        "regiao": "Sudeste",
+        "label": "Belo Horizonte"
+      },
+      {
+        "id": "SSA",
+        "x": 302.7,
+        "y": 364.0,
+        "regiao": "Nordeste",
+        "label": "Salvador"
+      },
+      {
+        "id": "GIG",
+        "x": 266.0,
+        "y": 327.3,
+        "regiao": "Sudeste",
+        "label": "Rio de Janeiro"
+      },
+      {
+        "id": "NAT",
+        "x": 242.5,
+        "y": 281.2,
+        "regiao": "Nordeste",
+        "label": "Natal"
+      },
+      {
+        "id": "THE",
+        "x": 234.4,
+        "y": 230.0,
+        "regiao": "Nordeste",
+        "label": "Teresina"
+      },
+      {
+        "id": "JPA",
+        "x": 242.5,
+        "y": 178.8,
+        "regiao": "Nordeste",
+        "label": "João Pessoa"
+      },
+      {
+        "id": "BEL",
+        "x": 266.0,
+        "y": 132.7,
+        "regiao": "Norte",
+        "label": "Belém"
+      },
+      {
+        "id": "PVH",
+        "x": 302.7,
+        "y": 96.0,
+        "regiao": "Norte",
+        "label": "Porto Velho"
+      },
+      {
+        "id": "RBR",
+        "x": 348.8,
+        "y": 72.5,
+        "regiao": "Norte",
+        "label": "Rio Branco"
       }
     ],
     "edges": [
       {
-        "source": "CGH",
-        "target": "GRU",
-        "weight": 1.5,
+        "source": "REC",
+        "target": "POA",
         "color": "#3b82f6",
-        "route": "MAO → CGH"
+        "weight": 2.0
+      },
+      {
+        "source": "MAO",
+        "target": "GRU",
+        "color": "#ff4d6d",
+        "weight": 2.0
       },
       {
         "source": "GRU",
-        "target": "MAO",
-        "weight": 2.0,
-        "color": "#3b82f6",
-        "route": "MAO → CGH"
+        "target": "CGH",
+        "color": "#ff4d6d",
+        "weight": 1.5
+      },
+      {
+        "source": "BSB",
+        "target": "POA",
+        "color": "#2dd4bf",
+        "weight": 2.0
       },
       {
         "source": "POA",
+        "target": "FLN",
+        "color": "#2dd4bf",
+        "weight": 1.5
+      },
+      {
+        "source": "FOR",
         "target": "REC",
-        "weight": 2.0,
+        "color": "#fbbf24",
+        "weight": 1.5
+      },
+      {
+        "source": "POA",
+        "target": "CWB",
+        "color": "#fbbf24",
+        "weight": 1.5
+      },
+      {
+        "source": "GYN",
+        "target": "BSB",
+        "color": "#a78bfa",
+        "weight": 1.5
+      },
+      {
+        "source": "BSB",
+        "target": "GRU",
+        "color": "#a78bfa",
+        "weight": 2.0
+      },
+      {
+        "source": "GRU",
+        "target": "VIX",
+        "color": "#a78bfa",
+        "weight": 1.5
+      },
+      {
+        "source": "CNF",
+        "target": "GRU",
+        "color": "#f97316",
+        "weight": 1.5
+      },
+      {
+        "source": "GRU",
+        "target": "REC",
+        "color": "#f97316",
+        "weight": 2.0
+      },
+      {
+        "source": "REC",
+        "target": "SSA",
+        "color": "#f97316",
+        "weight": 1.5
+      },
+      {
+        "source": "GIG",
+        "target": "GRU",
+        "color": "#34d399",
+        "weight": 1.5
+      },
+      {
+        "source": "REC",
+        "target": "NAT",
+        "color": "#34d399",
+        "weight": 1.5
+      },
+      {
+        "source": "THE",
+        "target": "JPA",
+        "color": "#f472b6",
+        "weight": 1.0
+      },
+      {
+        "source": "NAT",
+        "target": "REC",
+        "color": "#3b82f6",
+        "weight": 1.5
+      },
+      {
+        "source": "REC",
+        "target": "MAO",
+        "color": "#3b82f6",
+        "weight": 2.0
+      },
+      {
+        "source": "MAO",
+        "target": "BEL",
+        "color": "#3b82f6",
+        "weight": 1.5
+      },
+      {
+        "source": "PVH",
+        "target": "RBR",
         "color": "#ff4d6d",
-        "route": "REC → POA"
+        "weight": 1.0
       }
     ],
     "caminhos": [
       {
         "origem": "REC",
         "destino": "POA",
-        "custo": 2.0,
         "caminho": [
           "REC",
           "POA"
         ],
-        "cor": "#ff4d6d"
+        "custo": 2.0,
+        "cor": "#3b82f6"
       },
       {
         "origem": "MAO",
         "destino": "CGH",
-        "custo": 3.5,
         "caminho": [
           "MAO",
           "GRU",
           "CGH"
         ],
+        "custo": 3.5,
+        "cor": "#ff4d6d"
+      },
+      {
+        "origem": "BSB",
+        "destino": "FLN",
+        "caminho": [
+          "BSB",
+          "POA",
+          "FLN"
+        ],
+        "custo": 3.5,
+        "cor": "#2dd4bf"
+      },
+      {
+        "origem": "FOR",
+        "destino": "CWB",
+        "caminho": [
+          "FOR",
+          "REC",
+          "POA",
+          "CWB"
+        ],
+        "custo": 5.0,
+        "cor": "#fbbf24"
+      },
+      {
+        "origem": "GYN",
+        "destino": "VIX",
+        "caminho": [
+          "GYN",
+          "BSB",
+          "GRU",
+          "VIX"
+        ],
+        "custo": 5.0,
+        "cor": "#a78bfa"
+      },
+      {
+        "origem": "CNF",
+        "destino": "SSA",
+        "caminho": [
+          "CNF",
+          "GRU",
+          "REC",
+          "SSA"
+        ],
+        "custo": 5.0,
+        "cor": "#f97316"
+      },
+      {
+        "origem": "GIG",
+        "destino": "NAT",
+        "caminho": [
+          "GIG",
+          "GRU",
+          "REC",
+          "NAT"
+        ],
+        "custo": 5.0,
+        "cor": "#34d399"
+      },
+      {
+        "origem": "THE",
+        "destino": "JPA",
+        "caminho": [
+          "THE",
+          "JPA"
+        ],
+        "custo": 1.0,
+        "cor": "#f472b6"
+      },
+      {
+        "origem": "NAT",
+        "destino": "BEL",
+        "caminho": [
+          "NAT",
+          "REC",
+          "MAO",
+          "BEL"
+        ],
+        "custo": 5.0,
         "cor": "#3b82f6"
+      },
+      {
+        "origem": "PVH",
+        "destino": "RBR",
+        "caminho": [
+          "PVH",
+          "RBR"
+        ],
+        "custo": 1.0,
+        "cor": "#ff4d6d"
       }
-    ],
-    "largura": 760,
-    "altura": 490
+    ]
   }
 };

@@ -1,4 +1,4 @@
-export default function ChartCard({ icon, title, sub, children, fullWidth = false }) {
+export default function ChartCard({ title, sub, children, fullWidth = false }) {
   return (
     <div style={{
       background: 'rgba(15,23,42,0.82)',
@@ -25,7 +25,6 @@ export default function ChartCard({ icon, title, sub, children, fullWidth = fals
         borderBottom: '1px solid rgba(148,163,184,.14)',
         display: 'flex', gap: 12, alignItems: 'flex-start',
       }}>
-        <span style={{ fontSize: 22, flexShrink: 0, marginTop: 2 }}>{icon}</span>
         <div>
           <h3 style={{ fontSize: 15, fontWeight: 800, color: '#f0f9ff', lineHeight: 1.3 }}>
             {title}

@@ -2,7 +2,7 @@ export const CORES = {
   Nordeste:     '#E63946',
   Sudeste:      '#457B9D',
   Sul:          '#2A9D8F',
-  Norte:        '#E9C46A',
+  Norte:        '#A16207',
   'Centro-Oeste': '#F4A261',
 }
 
