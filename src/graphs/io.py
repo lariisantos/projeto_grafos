@@ -62,26 +62,38 @@ def carregar_aeroportos(caminho_arquivo: str) -> pd.DataFrame:
 
 def carregar_e_validar_elencos(caminho_csv):
     """
-    Lê o CSV, valida a estrutura das linhas (12 colunas) 
+    Lê o CSV, valida a estrutura das colunas (precisa ter 12) 
     e retorna uma lista contendo os elencos (listas de atores).
     """
     todos_os_elencos = []
     
-    with open(caminho_csv, mode='r', encoding='utf-8') as arquivo:
-        leitor = pd.read_csv(arquivo)
-        next(leitor)  # Pula o cabeçalho
+    # O pd.read_csv já sabe ler direto do caminho (string), não precisa do 'with open'
+    df = pd.read_csv(caminho_csv)
+    
+    # Validação do shape: se o DataFrame não tiver 12 colunas no total, o arquivo está errado
+    # df.shape[1] nos dá o número de colunas
+    if df.shape[1] != 12:
+        print(f"[Aviso] O arquivo possui {df.shape[1]} colunas em vez de 12. Verifique o dataset!")
+        # Dependendo do rigor, você pode dar um return vazio ou um raise aqui.
+    
+    # Iterando pelas linhas do DataFrame do jeito correto no Pandas
+    # O index começa em 0, somamos +2 para dar o número real da linha no arquivo físico
+    for index, linha in df.iterrows():
+        num_linha = index + 2 
         
-        for num_linha, linha in enumerate(leitor, start=2): # start=2 por causa do cabeçalho
-            # Validação do shape da linha (precisa ter exatamente 12 colunas)
-            if len(linha) != 12:
-                print(f"[Aviso] Linha {num_linha} inválida: contém {len(linha)} colunas em vez de 12. Pulando...")
-                continue
-                
-            elenco_raw = linha[4] # Coluna cast
+        # Acessamos a coluna 'cast' de forma segura pelo nome ou pelo índice original (linha.iloc[4])
+        # Usar o nome 'cast' é mais robusto caso a ordem mude
+        elenco_raw = linha['cast']
+        
+        # Tratando valores nulos (NaN) que o Pandas gera quando a célula está vazia
+        if pd.isna(elenco_raw):
+            continue
             
-            # Valida se o campo de elenco não está vazio ou só com espaços
-            if elenco_raw.strip():
-                atores = [ator.strip() for ator in elenco_raw.split(',')]
-                todos_os_elencos.append(atores)
+        elenco_str = str(elenco_raw).strip()
+        
+        if elenco_str:
+            # Separa os atores limpando os espaços
+            atores = [ator.strip() for ator in elenco_str.split(',')]
+            todos_os_elencos.append(atores)
                 
-    return todos_os_elencos   
+    return todos_os_elencos
