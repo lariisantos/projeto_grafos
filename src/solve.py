@@ -9,12 +9,14 @@ import matplotlib.pyplot as plt
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from graphs.algorithms import dijkstra
-from graphs.io import carregar_aeroportos, carregar_grafo
+from graphs.io import carregar_aeroportos, carregar_grafo, carregar_e_validar_elencos
 from graphs.graph import Grafo
 from graphs.metrics import metricas_subgrafo, ego_rede
 from pyvis.network import Network
 from viz import exportar_subgrafo_maior_grau
+from viz import exportar_bfs_camadas
 
+# Cria o arquivo adjacencias
 def gerar_arquivo_adjacencias():
     df = carregar_aeroportos('data/aeroportos_data.csv')
 
@@ -297,23 +299,57 @@ def gerar_subgrafo_maior_grau(
         pasta_saida=pasta_saida,
     )
 
-
+# VISUALIZAÇÃO 5: Visualização de camadas via BFS  
 def gerar_bfs_camadas(
     caminho_aeroportos: str = 'data/aeroportos_data.csv',
     caminho_adjacencias: str = 'data/adjacencias_aeroportos.csv',
     pasta_saida: str = 'out',
 ) -> str:
-    from viz import exportar_bfs_camadas
+    
     return exportar_bfs_camadas(
         caminho_aeroportos=caminho_aeroportos,
         caminho_adjacencias=caminho_adjacencias,
         pasta_saida=pasta_saida,
     )
 
+# Parte 2
+def criar_grafo_atores(todos_os_elencos):
+    """
+    Recebe a lista de elencos validados e monta o Grafo de Atores.
+    """
+    grafo = Grafo()
+    encontros_atores = {}
 
-calcular_metricas_q3 = calcular_metricas
-gerar_arvore_percurso_q7 = gerar_arvore_percurso
+    # 1. Cadastrar os vértices primeiro
+    for elenco in todos_os_elencos:
+        for ator in elenco:
+            grafo.adicionar_vertice(ator, {"tipo": "Ator"})
 
+    # 2. Combinação manual dupla para calcular os pesos
+    for elenco in todos_os_elencos:
+        n = len(elenco)
+        if n > 1:
+            for i in range(n):
+                for j in range(i + 1, n):
+                    ator1 = elenco[i]
+                    ator2 = elenco[j]
+                    
+                    # Ordenação alfabética manual para evitar duplicatas n-direcionadas
+                    if ator1 > ator2:
+                        par = (ator2, ator1)
+                    else:
+                        par = (ator1, ator2)
+                    
+                    if par in encontros_atores:
+                        encontros_atores[par] += 1
+                    else:
+                        encontros_atores[par] = 1
+
+    # 3. Alimenta as arestas do grafo genérico
+    for (ator1, ator2), peso in encontros_atores.items():
+        grafo.adicionar_aresta(ator1, ator2, peso)
+
+    return grafo
 
 def main():
     try:
@@ -329,7 +365,6 @@ def main():
     except Exception as e:
         print(f"Falha na execução: {e}")
         raise
-
 
 if __name__ == "__main__":
     main()

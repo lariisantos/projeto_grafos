@@ -4,9 +4,12 @@ io.py — carregar/validar o CSV fornecido
 import pandas as pd
 import os
 
+from graphs.graph import Grafo
 
 def carregar_grafo(caminho_aeroportos: str, caminho_adjacencias: str):
-    from graphs.graph import Grafo
+    """
+    Constroi um Grafo a partir de aeroportos_data.csv e adjacencias_aeroportos.csv.
+    """
 
     df = carregar_aeroportos(caminho_aeroportos)
 
@@ -56,3 +59,29 @@ def carregar_aeroportos(caminho_arquivo: str) -> pd.DataFrame:
     except Exception as e:
         print(f"Erro inesperado ao ler os dados: {e}")
         raise
+
+def carregar_e_validar_elencos(caminho_csv):
+    """
+    Lê o CSV, valida a estrutura das linhas (12 colunas) 
+    e retorna uma lista contendo os elencos (listas de atores).
+    """
+    todos_os_elencos = []
+    
+    with open(caminho_csv, mode='r', encoding='utf-8') as arquivo:
+        leitor = pd.read_csv(arquivo)
+        next(leitor)  # Pula o cabeçalho
+        
+        for num_linha, linha in enumerate(leitor, start=2): # start=2 por causa do cabeçalho
+            # Validação do shape da linha (precisa ter exatamente 12 colunas)
+            if len(linha) != 12:
+                print(f"[Aviso] Linha {num_linha} inválida: contém {len(linha)} colunas em vez de 12. Pulando...")
+                continue
+                
+            elenco_raw = linha[4] # Coluna cast
+            
+            # Valida se o campo de elenco não está vazio ou só com espaços
+            if elenco_raw.strip():
+                atores = [ator.strip() for ator in elenco_raw.split(',')]
+                todos_os_elencos.append(atores)
+                
+    return todos_os_elencos   

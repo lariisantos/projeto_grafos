@@ -11,12 +11,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from graphs.io import carregar_grafo
 from graphs.algorithms import dijkstra
 
-
-ROTAS_OBRIGATORIAS = [ #se precisar é só adicionar mais rotas
-    ("REC", "POA"),  # Recife -> Porto Alegre
-    ("MAO", "CGH"),  # Manaus -> São Paulo, conforme data/rotas.csv
+ROTAS_OBRIGATORIAS = [ 
+    ("REC", "POA"),  
+    ("MAO", "CGH"),  
 ]
-
 
 def construir_subgrafo_percursos(grafo, rotas: list[tuple[str, str]]):
     caminhos = []
