@@ -163,8 +163,8 @@ def gerar_arvore_percurso(
         pasta_saida=pasta_saida,
     )
 
-# Explorações e visualizações analíticas
-# Função auxiliar para carregar o arquivo ego_aeroportos.csv e validar sua existência.
+#Explorações e visualizações analíticas
+#Função auxiliar para carregar o arquivo ego_aeroportos.csv e validar sua existência.
 def _carregar_dados_ego(pasta_dados: str) -> pd.DataFrame | None:
     
     caminho_csv = os.path.join(pasta_dados, 'ego_aeroportos.csv')
@@ -178,7 +178,7 @@ def _carregar_dados_ego(pasta_dados: str) -> pd.DataFrame | None:
         print(f"Erro ao ler os dados de ego-rede: {e}")
         return None
     
-# VISUALIZAÇÃO 1: Distribuição de Graus (Histograma)
+#VISUALIZAÇÃO 1: Distribuição de Graus (Histograma)
 def gerar_histograma_graus(pasta_dados: str = 'out'):
     df_ego = _carregar_dados_ego(pasta_dados)
     if df_ego is None: return
@@ -206,7 +206,7 @@ def gerar_histograma_graus(pasta_dados: str = 'out'):
     plt.close()
     print(f"[AVD] Histograma salvo em: {caminho_hist}")
 
-# VISUALIZAÇÃO 2: Ranking de Aeroportos Mais Conectados (Barra Ordenada)
+#VISUALIZAÇÃO 2: Ranking de Aeroportos Mais Conectados (Barra Ordenada)
 def gerar_ranking_conectividade(pasta_dados: str = 'out'):
     caminho_csv = os.path.join(pasta_dados, 'ego_aeroportos.csv')
     
@@ -218,10 +218,10 @@ def gerar_ranking_conectividade(pasta_dados: str = 'out'):
 
     plt.figure(figsize=(10, 6))
     
-    # Ordena os dados do menor para o maior (para que o maior fique no topo do gráfico horizontal)
+    #Ordena os dados do menor para o maior (para que o maior fique no topo do gráfico horizontal)
     df_ranking = df_ego.sort_values(by='grau', ascending=True)
     
-    # Criando um degradê de azul usando um colormap do Matplotlib
+    #Criando um degradê de azul usando um colormap do Matplotlib
     valores_norm = (df_ranking['grau'] - df_ranking['grau'].min()) / (df_ranking['grau'].max() - df_ranking['grau'].min())
     cores_gradient = plt.cm.Blues(valores_norm * 0.6 + 0.4) 
     
@@ -238,7 +238,7 @@ def gerar_ranking_conectividade(pasta_dados: str = 'out'):
     plt.close()
     print(f"[AVD] Gráfico de barras salvo em: {caminho_barra}")
 
-# Função auxiliar para carregar as regioes
+#Função auxiliar para carregar as regioes
 def _carregar_dados_regioes(pasta_dados: str) -> list | None:
     caminho_json = os.path.join(pasta_dados, 'regioes.json')
     if not os.path.exists(caminho_json):
@@ -252,7 +252,7 @@ def _carregar_dados_regioes(pasta_dados: str) -> list | None:
         print(f"Erro ao ler os dados das regiões: {e}")
         return None
 
-# VISUALIZAÇÃO 3: Comparação entre Regiões
+#VISUALIZAÇÃO 3: Comparação entre Regiões
 def gerar_comparacao_regioes(pasta_dados: str = 'out'):
     dados = _carregar_dados_regioes(pasta_dados)
     if not dados: return
@@ -284,7 +284,7 @@ def gerar_comparacao_regioes(pasta_dados: str = 'out'):
     plt.close()
     print(f"[AVD] Comparação entre regiões salva em: {caminho}")
 
-# VISUALIZAÇÃO 4: Subgrafo dos aeroportos com maior grau 
+#VISUALIZAÇÃO 4: Subgrafo dos aeroportos com maior grau 
 def gerar_subgrafo_maior_grau(
     caminho_aeroportos: str = 'data/aeroportos_data.csv',
     caminho_adjacencias: str = 'data/adjacencias_aeroportos.csv',
