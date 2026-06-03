@@ -60,7 +60,7 @@ def carregar_aeroportos(caminho_arquivo: str) -> pd.DataFrame:
         print(f"Erro inesperado ao ler os dados: {e}")
         raise
 
-def carregar_e_validar_elencos(caminho_csv):
+def carregar_e_validar_elencos(caminho_csv: str):
     """
     Lê o CSV, valida a estrutura das colunas (precisa ter 12) 
     e retorna uma lista contendo os elencos (listas de atores).

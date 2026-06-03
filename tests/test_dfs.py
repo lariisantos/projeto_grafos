@@ -1,4 +1,16 @@
-from src.graphs.algorithms import dfs_filmes
+import os
+import sys
+
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+SRC_DIR = os.path.join(BASE_DIR, "src")
+
+if SRC_DIR not in sys.path:
+    sys.path.insert(0, SRC_DIR)
+
+from graphs.algorithms import dfs_filmes
+from solve import criar_grafo_atores
+
+DATASET_PARTE2 = os.path.join(BASE_DIR, "data", "dataset_parte2.csv")
 
 
 def test_dfs_filmes_tres_fontes_ordem_camadas_ciclos_classificacao():
@@ -31,35 +43,6 @@ def test_dfs_filmes_tres_fontes_ordem_camadas_ciclos_classificacao():
 
         assert len(classificacao_arestas["arvore"]) > 0
         assert len(classificacao_arestas["retorno"]) > 0
-
-import os
-import sys
-
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-SRC_DIR = os.path.join(BASE_DIR, "src")
-
-if SRC_DIR not in sys.path:
-    sys.path.insert(0, SRC_DIR)
-
-from graphs.algorithms import dfs_filmes
-from graphs.io import carregar_e_validar_elencos
-from solve import criar_grafo_atores
-
-DATASET_PARTE2 = os.path.join(BASE_DIR, "data", "dataset_parte2.csv")
-
-
-def montar_grafo_filmes_parte2():
-    """
-    Monta o grafo da Parte 2 usando as funções já existentes:
-    - carregar_e_validar_elencos do io.py
-    - criar_grafo_atores do solve.py
-    """
-
-    todos_os_elencos = carregar_e_validar_elencos(DATASET_PARTE2)
-    grafo_atores = criar_grafo_atores(todos_os_elencos)
-
-    return grafo_atores
-
 
 def escolher_fontes_distintas(grafo, quantidade=3):
     """
@@ -137,7 +120,7 @@ def test_dfs_filmes_dataset_parte2_tres_fontes_terminal():
 
     sys.setrecursionlimit(200000)
 
-    grafo_atores = montar_grafo_filmes_parte2()
+    grafo_atores = criar_grafo_atores()
     fontes = escolher_fontes_distintas(grafo_atores, quantidade=3)
 
     assert len(fontes) >= 3
