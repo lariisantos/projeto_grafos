@@ -313,19 +313,24 @@ def gerar_bfs_camadas(
     )
 
 # Parte 2
-def criar_grafo_atores(todos_os_elencos):
+def criar_grafo_atores(
+    caminho_dataset: str = 'data/dataset_parte2.csv',
+) -> Grafo:
     """
-    Recebe a lista de elencos validados e monta o Grafo de Atores.
+    [Parte 2] Carrega os dados de elencos utilizando a função importada, 
+    monta e retorna o Grafo de Atores interconectados com base nas parcerias.
     """
+    todos_os_elencos = carregar_e_validar_elencos(caminho_dataset)
+    
     grafo = Grafo()
     encontros_atores = {}
 
-    # 1. Cadastrar os vértices primeiro
+    # 1. Cadastrar os vértices (Atores)
     for elenco in todos_os_elencos:
         for ator in elenco:
             grafo.adicionar_vertice(ator, {"tipo": "Ator"})
 
-    # 2. Combinação manual dupla para calcular os pesos
+    # 2. Combinação manual dupla para calcular os pesos das parcerias
     for elenco in todos_os_elencos:
         n = len(elenco)
         if n > 1:
@@ -334,7 +339,7 @@ def criar_grafo_atores(todos_os_elencos):
                     ator1 = elenco[i]
                     ator2 = elenco[j]
                     
-                    # Ordenação alfabética manual para evitar duplicatas n-direcionadas
+                    # Ordenação alfabética manual para consistência de chaves
                     if ator1 > ator2:
                         par = (ator2, ator1)
                     else:
@@ -345,10 +350,12 @@ def criar_grafo_atores(todos_os_elencos):
                     else:
                         encontros_atores[par] = 1
 
-    # 3. Alimenta as arestas do grafo genérico
+    # 3. Alimenta as arestas do objeto Grafo
     for (ator1, ator2), peso in encontros_atores.items():
         grafo.adicionar_aresta(ator1, ator2, peso)
 
+    print(f"[Parte 2] Grafo de Atores criado com sucesso! Ordem={len(grafo.adj)} atores.")
+    
     return grafo
 
 def main():
@@ -362,6 +369,7 @@ def main():
         gerar_comparacao_regioes()
         gerar_subgrafo_maior_grau()
         gerar_bfs_camadas()
+        criar_grafo_atores()
     except Exception as e:
         print(f"Falha na execução: {e}")
         raise

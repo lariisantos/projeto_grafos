@@ -62,52 +62,38 @@ def carregar_aeroportos(caminho_arquivo: str) -> pd.DataFrame:
 
 def carregar_e_validar_elencos(caminho_csv):
     """
-    Lê o CSV da Parte 2, valida a estrutura das linhas
-    e retorna uma lista contendo os elencos.
-    Cada elenco é uma lista de atores.
+    Lê o CSV, valida a estrutura das colunas (precisa ter 12) 
+    e retorna uma lista contendo os elencos (listas de atores).
     """
-
-    if not os.path.exists(caminho_csv):
-        raise FileNotFoundError(f"Arquivo não encontrado: {caminho_csv}")
-
-    df = pd.read_csv(caminho_csv)
-
-    if df.shape[1] != 12:
-        print(
-            f"[Aviso] O dataset possui {df.shape[1]} colunas, "
-            "mas eram esperadas 12 colunas."
-        )
-
-    if "cast" not in df.columns:
-        raise ValueError("A coluna 'cast' não foi encontrada no dataset.")
-
     todos_os_elencos = []
-
-    for num_linha, linha in df.iterrows():
-        if len(linha) != 12:
-            print(
-                f"[Aviso] Linha {num_linha + 2} inválida: "
-                f"contém {len(linha)} colunas em vez de 12. Pulando..."
-            )
-            continue
-
-        elenco_raw = linha["cast"]
-
+    
+    # O pd.read_csv já sabe ler direto do caminho (string), não precisa do 'with open'
+    df = pd.read_csv(caminho_csv)
+    
+    # Validação do shape: se o DataFrame não tiver 12 colunas no total, o arquivo está errado
+    # df.shape[1] nos dá o número de colunas
+    if df.shape[1] != 12:
+        print(f"[Aviso] O arquivo possui {df.shape[1]} colunas em vez de 12. Verifique o dataset!")
+        # Dependendo do rigor, você pode dar um return vazio ou um raise aqui.
+    
+    # Iterando pelas linhas do DataFrame do jeito correto no Pandas
+    # O index começa em 0, somamos +2 para dar o número real da linha no arquivo físico
+    for index, linha in df.iterrows():
+        num_linha = index + 2 
+        
+        # Acessamos a coluna 'cast' de forma segura pelo nome ou pelo índice original (linha.iloc[4])
+        # Usar o nome 'cast' é mais robusto caso a ordem mude
+        elenco_raw = linha['cast']
+        
+        # Tratando valores nulos (NaN) que o Pandas gera quando a célula está vazia
         if pd.isna(elenco_raw):
             continue
-
-        elenco_raw = str(elenco_raw).strip()
-
-        if not elenco_raw:
-            continue
-
-        atores = [
-            ator.strip()
-            for ator in elenco_raw.split(",")
-            if ator.strip()
-        ]
-
-        if len(atores) >= 2:
+            
+        elenco_str = str(elenco_raw).strip()
+        
+        if elenco_str:
+            # Separa os atores limpando os espaços
+            atores = [ator.strip() for ator in elenco_str.split(',')]
             todos_os_elencos.append(atores)
-
+                
     return todos_os_elencos
