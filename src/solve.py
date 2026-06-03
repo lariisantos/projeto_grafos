@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from graphs.algorithms import dijkstra
+from graphs.algorithms import dijkstra, dfs_filmes
 from graphs.io import carregar_aeroportos, carregar_grafo, carregar_e_validar_elencos
 from graphs.graph import Grafo
 from graphs.metrics import metricas_subgrafo, ego_rede
@@ -351,6 +351,132 @@ def criar_grafo_atores(todos_os_elencos):
 
     return grafo
 
+def carregar_elencos_parte2(caminho_csv: str = "data/dataset_parte2.csv"):
+    """
+    Carrega o dataset da parte 2 e extrai os elencos da coluna 'cast'.
+    Cada linha vira uma lista de atores.
+    """
+
+    df = pd.read_csv(caminho_csv)
+
+    if "cast" not in df.columns:
+        raise ValueError("A coluna 'cast' não foi encontrada no dataset da parte 2.")
+
+    todos_os_elencos = []
+
+    for elenco_raw in df["cast"].dropna():
+        atores = [
+            ator.strip()
+            for ator in str(elenco_raw).split(",")
+            if ator.strip()
+        ]
+
+        if len(atores) >= 2:
+            todos_os_elencos.append(atores)
+
+    return todos_os_elencos
+
+
+def executar_dfs_parte2(
+    caminho_csv: str = "data/dataset_parte2.csv",
+    quantidade_fontes: int = 3,
+    limite_exibicao: int = 25
+):
+    """
+    Executa DFS no grafo de atores da Parte 2 a partir de pelo menos 3 fontes distintas.
+    Mostra no terminal:
+    - fonte inicial
+    - ordem de visita
+    - camadas/profundidade
+    - predecessores
+    - ciclos encontrados
+    - classificação das arestas
+    """
+
+    sys.setrecursionlimit(100000)
+
+    print("\n" + "=" * 80)
+    print("[PARTE 2] DFS NO GRAFO DE FILMES/ATORES")
+    print("=" * 80)
+
+    todos_os_elencos = carregar_elencos_parte2(caminho_csv)
+    grafo_atores = criar_grafo_atores(todos_os_elencos)
+
+    total_vertices = len(grafo_atores.adj)
+    total_arestas = sum(len(vizinhos) for vizinhos in grafo_atores.adj.values()) // 2
+
+    print(f"Dataset carregado: {caminho_csv}")
+    print(f"Elencos válidos encontrados: {len(todos_os_elencos)}")
+    print(f"Total de atores/vértices: {total_vertices}")
+    print(f"Total de conexões/arestas: {total_arestas}")
+
+    fontes = sorted(
+        grafo_atores.adj.keys(),
+        key=lambda ator: len(grafo_atores.adj[ator]),
+        reverse=True
+    )[:quantidade_fontes]
+
+    print(f"\nFontes escolhidas para o DFS: {fontes}")
+
+    for indice, fonte in enumerate(fontes, start=1):
+        print("\n" + "-" * 80)
+        print(f"DFS {indice} - Fonte inicial: {fonte}")
+        print("-" * 80)
+
+        ordem_visita, camadas, predecessores, ciclos, classificacao_arestas = dfs_filmes(
+            grafo_atores,
+            fonte
+        )
+
+        print(f"Total de vértices alcançados: {len(ordem_visita)}")
+        print(f"Profundidade máxima encontrada: {max(camadas.values())}")
+        print(f"Quantidade de ciclos encontrados: {len(ciclos)}")
+
+        print("\nOrdem de visita DFS:")
+        ordem_para_exibir = ordem_visita[:limite_exibicao]
+
+        for posicao, no in enumerate(ordem_para_exibir, start=1):
+            print(
+                f"{posicao:02d}. {no} "
+                f"| camada={camadas[no]} "
+                f"| predecessor={predecessores.get(no)}"
+            )
+
+        if len(ordem_visita) > limite_exibicao:
+            print(f"... exibindo apenas os primeiros {limite_exibicao} de {len(ordem_visita)} vértices visitados.")
+
+        print("\nResumo das camadas:")
+        resumo_camadas = {}
+
+        for no, camada in camadas.items():
+            if camada not in resumo_camadas:
+                resumo_camadas[camada] = 0
+            resumo_camadas[camada] += 1
+
+        for camada in sorted(resumo_camadas.keys())[:10]:
+            print(f"Camada {camada}: {resumo_camadas[camada]} vértice(s)")
+
+        if len(resumo_camadas) > 10:
+            print("... exibindo apenas as 10 primeiras camadas.")
+
+        print("\nExemplos de ciclos encontrados:")
+        if ciclos:
+            for ciclo in ciclos[:10]:
+                print(f"{ciclo[0]} -> {ciclo[1]}")
+
+            if len(ciclos) > 10:
+                print(f"... exibindo apenas 10 de {len(ciclos)} ciclos.")
+        else:
+            print("Nenhum ciclo encontrado a partir desta fonte.")
+
+        print("\nClassificação das arestas:")
+        for tipo, arestas in classificacao_arestas.items():
+            print(f"{tipo}: {len(arestas)} aresta(s)")
+
+    print("\n" + "=" * 80)
+    print("[PARTE 2] DFS finalizado com sucesso.")
+    print("=" * 80)
+
 def main():
     try:
         gerar_arquivo_adjacencias()
@@ -362,6 +488,7 @@ def main():
         gerar_comparacao_regioes()
         gerar_subgrafo_maior_grau()
         gerar_bfs_camadas()
+        executar_dfs_parte2()
     except Exception as e:
         print(f"Falha na execução: {e}")
         raise
