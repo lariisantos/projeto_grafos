@@ -62,26 +62,52 @@ def carregar_aeroportos(caminho_arquivo: str) -> pd.DataFrame:
 
 def carregar_e_validar_elencos(caminho_csv):
     """
-    Lê o CSV, valida a estrutura das linhas (12 colunas) 
-    e retorna uma lista contendo os elencos (listas de atores).
+    Lê o CSV da Parte 2, valida a estrutura das linhas
+    e retorna uma lista contendo os elencos.
+    Cada elenco é uma lista de atores.
     """
+
+    if not os.path.exists(caminho_csv):
+        raise FileNotFoundError(f"Arquivo não encontrado: {caminho_csv}")
+
+    df = pd.read_csv(caminho_csv)
+
+    if df.shape[1] != 12:
+        print(
+            f"[Aviso] O dataset possui {df.shape[1]} colunas, "
+            "mas eram esperadas 12 colunas."
+        )
+
+    if "cast" not in df.columns:
+        raise ValueError("A coluna 'cast' não foi encontrada no dataset.")
+
     todos_os_elencos = []
-    
-    with open(caminho_csv, mode='r', encoding='utf-8') as arquivo:
-        leitor = pd.read_csv(arquivo)
-        next(leitor)  # Pula o cabeçalho
-        
-        for num_linha, linha in enumerate(leitor, start=2): # start=2 por causa do cabeçalho
-            # Validação do shape da linha (precisa ter exatamente 12 colunas)
-            if len(linha) != 12:
-                print(f"[Aviso] Linha {num_linha} inválida: contém {len(linha)} colunas em vez de 12. Pulando...")
-                continue
-                
-            elenco_raw = linha[4] # Coluna cast
-            
-            # Valida se o campo de elenco não está vazio ou só com espaços
-            if elenco_raw.strip():
-                atores = [ator.strip() for ator in elenco_raw.split(',')]
-                todos_os_elencos.append(atores)
-                
-    return todos_os_elencos   
+
+    for num_linha, linha in df.iterrows():
+        if len(linha) != 12:
+            print(
+                f"[Aviso] Linha {num_linha + 2} inválida: "
+                f"contém {len(linha)} colunas em vez de 12. Pulando..."
+            )
+            continue
+
+        elenco_raw = linha["cast"]
+
+        if pd.isna(elenco_raw):
+            continue
+
+        elenco_raw = str(elenco_raw).strip()
+
+        if not elenco_raw:
+            continue
+
+        atores = [
+            ator.strip()
+            for ator in elenco_raw.split(",")
+            if ator.strip()
+        ]
+
+        if len(atores) >= 2:
+            todos_os_elencos.append(atores)
+
+    return todos_os_elencos
