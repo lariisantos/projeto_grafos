@@ -247,6 +247,107 @@ def exportar_react_data():
             print(f"[REACT] copiado {fname} -> public/")
 
 
+# ──────────────────────────────────────────────────────────────────────────
+# PARTE 2 — Rede de colaboração de atores (Netflix)
+# O grafo é grande demais para exportar inteiro; exportamos apenas agregados
+# compactos para o front React (histograma, ranking, heatmap e amostra do grafo).
+# ──────────────────────────────────────────────────────────────────────────
+def _bfs_dist(adj, origem):
+    """Distâncias em nº de saltos (BFS) a partir de `origem`."""
+    from collections import deque
+    dist = {origem: 0}
+    fila = deque([origem])
+    while fila:
+        no = fila.popleft()
+        for viz in adj.get(no, {}):
+            if viz not in dist:
+                dist[viz] = dist[no] + 1
+                fila.append(viz)
+    return dist
+
+
+def _build_parte2_dados(grafo, top_ranking=20, top_heatmap=12, ego_vizinhos=22):
+    graus = {no: len(viz) for no, viz in grafo.adj.items()}
+    n = len(graus)
+    m = sum(graus.values()) // 2
+    grau_medio = (sum(graus.values()) / n) if n else 0
+    densidade = (2 * m / (n * (n - 1))) if n > 1 else 0
+    ator_top = max(graus, key=graus.get) if graus else None
+    ator_top_grau = graus.get(ator_top, 0)
+
+    # Histograma — faixas lineares de grau
+    grau_max = max(graus.values()) if graus else 0
+    n_bins = 12
+    largura = max(1, math.ceil((grau_max + 1) / n_bins))
+    faixas = {}
+    for d in graus.values():
+        faixas[d // largura] = faixas.get(d // largura, 0) + 1
+    b_max = max(faixas.keys()) if faixas else -1
+    histograma = []
+    for b in range(b_max + 1):
+        ini, fim = b * largura, b * largura + largura - 1
+        histograma.append({"faixa": f"{ini}–{fim}", "ini": ini, "count": faixas.get(b, 0)})
+
+    # Ranking dos atores mais conectados
+    ordenados = sorted(graus.items(), key=lambda kv: kv[1], reverse=True)
+    ranking = [{"ator": a, "grau": d} for a, d in ordenados[:top_ranking]]
+
+    # Heatmap de distâncias (saltos BFS) entre os top atores
+    top_hm = [a for a, _ in ordenados[:top_heatmap]]
+    matriz = []
+    for a in top_hm:
+        dist = _bfs_dist(grafo.adj, a)
+        matriz.append([dist.get(b) for b in top_hm])  # None = sem caminho (componentes distintas)
+    heatmap = {"atores": top_hm, "matriz": matriz}
+
+    # Amostra do grafo — ego-rede do ator mais conectado (centro + vizinhos por peso)
+    rede = {"nodes": [], "edges": []}
+    if ator_top:
+        vizinhos = sorted(grafo.adj[ator_top].items(), key=lambda kv: kv[1], reverse=True)[:ego_vizinhos]
+        selecionados = [ator_top] + [v for v, _ in vizinhos]
+        sel_set = set(selecionados)
+        rede["nodes"] = [{"id": a, "grau": graus[a], "centro": a == ator_top} for a in selecionados]
+        visto = set()
+        for u in selecionados:
+            for v, peso in grafo.adj[u].items():
+                if v in sel_set:
+                    chave = tuple(sorted((u, v)))
+                    if chave not in visto:
+                        visto.add(chave)
+                        rede["edges"].append({"source": u, "target": v, "peso": peso})
+
+    return {
+        "resumo": {
+            "ordem": n,
+            "tamanho": m,
+            "grauMedio": round(grau_medio, 2),
+            "grauMax": grau_max,
+            "densidade": densidade,
+            "atorTop": ator_top,
+            "atorTopGrau": ator_top_grau,
+        },
+        "histograma": histograma,
+        "ranking": ranking,
+        "heatmap": heatmap,
+        "rede": rede,
+    }
+
+
+def exportar_react_data_parte2(grafo):
+    """Exporta os agregados da Parte 2 para dashboard/src/data_parte2.js."""
+    os.makedirs(DASH_SRC, exist_ok=True)
+    payload = _build_parte2_dados(grafo)
+    data_js = (
+        "// Gerado automaticamente por export_react.py -- nao edite manualmente\n"
+        f"export const DATA_PARTE2 = {json.dumps(payload, ensure_ascii=False, indent=2)};\n"
+    )
+    dest = os.path.join(DASH_SRC, "data_parte2.js")
+    with open(dest, "w", encoding="utf-8") as f:
+        f.write(data_js)
+    print(f"[REACT] data_parte2.js gerado -> {dest} "
+          f"(ranking={len(payload['ranking'])}, rede={len(payload['rede']['nodes'])} nós)")
+
+
 def buildar_react():
     print("[REACT] Instalando dependencias (se necessario)...")
     subprocess.run(

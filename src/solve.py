@@ -16,7 +16,7 @@ from graphs.algorithms import dijkstra
 from graphs.io import carregar_aeroportos, carregar_grafo, carregar_e_validar_elencos
 from graphs.graph import Grafo
 from graphs.metrics import metricas_subgrafo, ego_rede
-from export_react import exportar_react_data, buildar_react
+from export_react import exportar_react_data, exportar_react_data_parte2, buildar_react
 
 # Toda a camada visual do projeto vive em viz.py (módulo visual único).
 # solve.py apenas calcula dados e orquestra a geração das visualizações.
@@ -467,7 +467,8 @@ def main():
         gerar_ranking_atores_parte2(grafo_p2)
 
         # ── Front React (camada de apresentação por cima dos dados) ──
-        exportar_react_data()            # gera dashboard/src/data.js
+        exportar_react_data()            # Parte 1 -> dashboard/src/data.js
+        exportar_react_data_parte2(grafo_p2)  # Parte 2 -> dashboard/src/data_parte2.js
         buildar_react()                  # build do app React
     except Exception as e:
         print(f"Falha na execução: {e}")
