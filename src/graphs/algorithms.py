@@ -1,3 +1,6 @@
+"""
+algorithms.py — implementação de BFS, DFS, Dijkstra e Bellman–Ford
+"""
 import heapq
 from collections import deque
 

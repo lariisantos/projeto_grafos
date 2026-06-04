@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from graphs.algorithms import dijkstra
-from graphs.io import carregar_aeroportos, carregar_grafo
+from graphs.io import carregar_aeroportos, carregar_grafo, carregar_e_validar_elencos
 from graphs.graph import Grafo
 from graphs.metrics import metricas_subgrafo, ego_rede
 from analise_q10 import analise_avd
@@ -18,7 +18,9 @@ from export_react import exportar_react_data, buildar_react
 
 from pyvis.network import Network
 from viz import exportar_subgrafo_maior_grau
+from viz import exportar_bfs_camadas
 
+# Cria o arquivo adjacencias
 def gerar_arquivo_adjacencias():
     df = carregar_aeroportos('data/aeroportos_data.csv')
 
@@ -277,8 +279,8 @@ def gerar_arvore_percurso(
         pasta_saida=pasta_saida,
     )
 
-# Explorações e visualizações analíticas
-# Função auxiliar para carregar o arquivo ego_aeroportos.csv e validar sua existência.
+#Explorações e visualizações analíticas
+#Função auxiliar para carregar o arquivo ego_aeroportos.csv e validar sua existência.
 def _carregar_dados_ego(pasta_dados: str) -> pd.DataFrame | None:
     
     caminho_csv = os.path.join(pasta_dados, 'ego_aeroportos.csv')
@@ -292,7 +294,7 @@ def _carregar_dados_ego(pasta_dados: str) -> pd.DataFrame | None:
         print(f"Erro ao ler os dados de ego-rede: {e}")
         return None
     
-# VISUALIZAÇÃO 1: Distribuição de Graus (Histograma)
+#VISUALIZAÇÃO 1: Distribuição de Graus (Histograma)
 def gerar_histograma_graus(pasta_dados: str = 'out'):
     df_ego = _carregar_dados_ego(pasta_dados)
     if df_ego is None: return
@@ -320,7 +322,7 @@ def gerar_histograma_graus(pasta_dados: str = 'out'):
     plt.close()
     print(f"[AVD] Histograma salvo em: {caminho_hist}")
 
-# VISUALIZAÇÃO 2: Ranking de Aeroportos Mais Conectados (Barra Ordenada)
+#VISUALIZAÇÃO 2: Ranking de Aeroportos Mais Conectados (Barra Ordenada)
 def gerar_ranking_conectividade(pasta_dados: str = 'out'):
     caminho_csv = os.path.join(pasta_dados, 'ego_aeroportos.csv')
     
@@ -332,10 +334,10 @@ def gerar_ranking_conectividade(pasta_dados: str = 'out'):
 
     plt.figure(figsize=(10, 6))
     
-    # Ordena os dados do menor para o maior (para que o maior fique no topo do gráfico horizontal)
+    #Ordena os dados do menor para o maior (para que o maior fique no topo do gráfico horizontal)
     df_ranking = df_ego.sort_values(by='grau', ascending=True)
     
-    # Criando um degradê de azul usando um colormap do Matplotlib
+    #Criando um degradê de azul usando um colormap do Matplotlib
     valores_norm = (df_ranking['grau'] - df_ranking['grau'].min()) / (df_ranking['grau'].max() - df_ranking['grau'].min())
     cores_gradient = plt.cm.Blues(valores_norm * 0.6 + 0.4) 
     
@@ -352,7 +354,7 @@ def gerar_ranking_conectividade(pasta_dados: str = 'out'):
     plt.close()
     print(f"[AVD] Gráfico de barras salvo em: {caminho_barra}")
 
-# Função auxiliar para carregar as regioes
+#Função auxiliar para carregar as regioes
 def _carregar_dados_regioes(pasta_dados: str) -> list | None:
     caminho_json = os.path.join(pasta_dados, 'regioes.json')
     if not os.path.exists(caminho_json):
@@ -366,7 +368,7 @@ def _carregar_dados_regioes(pasta_dados: str) -> list | None:
         print(f"Erro ao ler os dados das regiões: {e}")
         return None
 
-# VISUALIZAÇÃO 3: Comparação entre Regiões
+#VISUALIZAÇÃO 3: Comparação entre Regiões
 def gerar_comparacao_regioes(pasta_dados: str = 'out'):
     dados = _carregar_dados_regioes(pasta_dados)
     if not dados: return
@@ -398,7 +400,7 @@ def gerar_comparacao_regioes(pasta_dados: str = 'out'):
     plt.close()
     print(f"[AVD] Comparação entre regiões salva em: {caminho}")
 
-# VISUALIZAÇÃO 4: Subgrafo dos aeroportos com maior grau 
+#VISUALIZAÇÃO 4: Subgrafo dos aeroportos com maior grau 
 def gerar_subgrafo_maior_grau(
     caminho_aeroportos: str = 'data/aeroportos_data.csv',
     caminho_adjacencias: str = 'data/adjacencias_aeroportos.csv',
@@ -411,23 +413,64 @@ def gerar_subgrafo_maior_grau(
         pasta_saida=pasta_saida,
     )
 
-
+# VISUALIZAÇÃO 5: Visualização de camadas via BFS  
 def gerar_bfs_camadas(
     caminho_aeroportos: str = 'data/aeroportos_data.csv',
     caminho_adjacencias: str = 'data/adjacencias_aeroportos.csv',
     pasta_saida: str = 'out',
 ) -> str:
-    from viz import exportar_bfs_camadas
+    
     return exportar_bfs_camadas(
         caminho_aeroportos=caminho_aeroportos,
         caminho_adjacencias=caminho_adjacencias,
         pasta_saida=pasta_saida,
     )
 
+# Parte 2
+def criar_grafo_atores(
+    caminho_dataset: str = 'data/dataset_parte2.csv',
+) -> Grafo:
+    """
+    [Parte 2] Carrega os dados de elencos utilizando a função importada, 
+    monta e retorna o Grafo de Atores interconectados com base nas parcerias.
+    """
+    todos_os_elencos = carregar_e_validar_elencos(caminho_dataset)
+    
+    grafo = Grafo()
+    encontros_atores = {}
 
-calcular_metricas_q3 = calcular_metricas
-gerar_arvore_percurso_q7 = gerar_arvore_percurso
+    # 1. Cadastrar os vértices (Atores)
+    for elenco in todos_os_elencos:
+        for ator in elenco:
+            grafo.adicionar_vertice(ator, {"tipo": "Ator"})
 
+    # 2. Combinação manual dupla para calcular os pesos das parcerias
+    for elenco in todos_os_elencos:
+        n = len(elenco)
+        if n > 1:
+            for i in range(n):
+                for j in range(i + 1, n):
+                    ator1 = elenco[i]
+                    ator2 = elenco[j]
+                    
+                    # Ordenação alfabética manual para consistência de chaves
+                    if ator1 > ator2:
+                        par = (ator2, ator1)
+                    else:
+                        par = (ator1, ator2)
+                    
+                    if par in encontros_atores:
+                        encontros_atores[par] += 1
+                    else:
+                        encontros_atores[par] = 1
+
+    # 3. Alimenta as arestas do objeto Grafo
+    for (ator1, ator2), peso in encontros_atores.items():
+        grafo.adicionar_aresta(ator1, ator2, peso)
+
+    print(f"[Parte 2] Grafo de Atores criado com sucesso! Ordem={len(grafo.adj)} atores.")
+    
+    return grafo
 
 def main():
     try:
@@ -440,6 +483,7 @@ def main():
         gerar_comparacao_regioes()
         gerar_subgrafo_maior_grau()
         gerar_bfs_camadas()
+        criar_grafo_atores()       #Parte 2 — grafo de atores
         analise_avd()              #Ponto 10
         gerar_dashboard()          #Dashboard HTML (legado)
         exportar_react_data()      #Exporta dados para React
@@ -447,7 +491,6 @@ def main():
     except Exception as e:
         print(f"Falha na execução: {e}")
         raise
-
 
 if __name__ == "__main__":
     main()
