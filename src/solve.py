@@ -1,9 +1,14 @@
+from __future__ import annotations
+
 import csv
 import json
 import os
 import sys
+import numpy as np
+from collections import deque
 
 import pandas as pd
+import matplotlib.pyplot as plt  # usado pelas visualizações da Parte 2 (abaixo)
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -293,6 +298,151 @@ def criar_grafo_atores(
     return grafo
 
 
+def gerar_distribuicao_graus_parte2(grafo, pasta_saida: str = 'out') -> str:
+    """Histograma da distribuição de graus do grafo de colaboração de atores Netflix."""
+    os.makedirs(pasta_saida, exist_ok=True)
+
+    graus = [len(vizinhos) for vizinhos in grafo.adj.values()]
+    if not graus:
+        print("[Parte 2] Grafo vazio, histograma não gerado.")
+        return ""
+
+    media = sum(graus) / len(graus)
+    maximo = max(graus)
+    bins = min(50, maximo + 1)
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.hist(graus, bins=bins, color='#2563eb', edgecolor='white', linewidth=0.4, alpha=0.87)
+    ax.axvline(media, color='#ef4444', linestyle='--', linewidth=1.8, label=f'Média: {media:.1f}')
+    ax.set_title(
+        'Distribuição de Graus — Rede de Colaboração de Atores (Netflix)',
+        fontsize=14, fontweight='bold', pad=15,
+    )
+    ax.set_xlabel('Grau (número de colaboradores únicos)', fontsize=12)
+    ax.set_ylabel('Frequência (número de atores)', fontsize=12)
+    ax.grid(axis='y', linestyle='--', alpha=0.7)
+    ax.legend(fontsize=10)
+
+    stats = f'Atores: {len(graus):,}\nMáximo: {maximo}\nMédia: {media:.1f}'
+    ax.text(0.97, 0.97, stats, transform=ax.transAxes, fontsize=9,
+            verticalalignment='top', horizontalalignment='right',
+            bbox=dict(boxstyle='round,pad=0.4', facecolor='white', alpha=0.85, edgecolor='#cbd5e1'))
+
+    plt.tight_layout()
+    caminho = os.path.join(pasta_saida, 'parte2_distribuicao_graus.png')
+    plt.savefig(caminho, dpi=300, bbox_inches='tight')
+    plt.close()
+    print(f"[Parte 2] Distribuição de graus salva em: {caminho}")
+    return caminho
+
+
+def gerar_heatmap_distancias_parte2(grafo, pasta_saida: str = 'out', top_n: int = 12) -> str:
+    """Heatmap das distâncias BFS (hops) entre os top-N atores mais conectados."""
+    os.makedirs(pasta_saida, exist_ok=True)
+
+    graus = {no: len(viz) for no, viz in grafo.adj.items()}
+    if not graus:
+        print("[Parte 2] Grafo vazio, heatmap não gerado.")
+        return ""
+
+    top_atores = sorted(graus, key=graus.get, reverse=True)[:top_n]
+
+    def _bfs_dist(adj, origem):
+        dist = {origem: 0}
+        fila = deque([origem])
+        while fila:
+            no = fila.popleft()
+            for viz in adj.get(no, {}):
+                if viz not in dist:
+                    dist[viz] = dist[no] + 1
+                    fila.append(viz)
+        return dist
+
+    n = len(top_atores)
+    matriz = np.full((n, n), np.nan)
+    np.fill_diagonal(matriz, 0)
+
+    for i, ator in enumerate(top_atores):
+        dists = _bfs_dist(grafo.adj, ator)
+        for j, outro in enumerate(top_atores):
+            if i != j and outro in dists:
+                matriz[i, j] = dists[outro]
+
+    labels = [a[:18] for a in top_atores]
+
+    fig, ax = plt.subplots(figsize=(12, 10))
+    im = ax.imshow(matriz, cmap='YlOrRd_r', aspect='auto', vmin=0)
+
+    cbar = plt.colorbar(im, ax=ax, shrink=0.82)
+    cbar.set_label('Distância (hops BFS)', fontsize=11)
+
+    ax.set_xticks(range(n))
+    ax.set_yticks(range(n))
+    ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=9)
+    ax.set_yticklabels(labels, fontsize=9)
+    ax.set_title(
+        f'Heatmap de Distâncias BFS — Top {top_n} Atores Mais Conectados\n'
+        'Rede de Colaboração Netflix  (valor = hops mínimos entre atores)',
+        fontsize=12, fontweight='bold', pad=15,
+    )
+    ax.set_xlabel('Ator (destino)', fontsize=11)
+    ax.set_ylabel('Ator (origem)', fontsize=11)
+
+    max_val = float(np.nanmax(matriz)) if not np.all(np.isnan(matriz)) else 1.0
+    for i in range(n):
+        for j in range(n):
+            val = matriz[i, j]
+            if not np.isnan(val):
+                cor = 'white' if val < max_val * 0.4 else 'black'
+                ax.text(j, i, str(int(val)), ha='center', va='center',
+                        fontsize=9, fontweight='bold', color=cor)
+
+    plt.tight_layout()
+    caminho = os.path.join(pasta_saida, 'parte2_heatmap_distancias.png')
+    plt.savefig(caminho, dpi=300, bbox_inches='tight')
+    plt.close()
+    print(f"[Parte 2] Heatmap de distâncias salvo em: {caminho}")
+    return caminho
+
+
+def gerar_ranking_atores_parte2(grafo, pasta_saida: str = 'out', top_n: int = 20) -> str:
+    """Bar chart dos top-N atores mais conectados na rede Netflix."""
+    os.makedirs(pasta_saida, exist_ok=True)
+
+    graus = {no: len(viz) for no, viz in grafo.adj.items()}
+    if not graus:
+        print("[Parte 2] Grafo vazio, ranking não gerado.")
+        return ""
+
+    top = sorted(graus.items(), key=lambda kv: kv[1])[-top_n:]
+    nomes = [kv[0][:28] for kv in top]
+    valores = [kv[1] for kv in top]
+
+    vmin, vmax = min(valores), max(valores)
+    norm = [(v - vmin) / max(vmax - vmin, 1) for v in valores]
+    cores = plt.cm.Blues([0.35 + 0.65 * n for n in norm])
+
+    fig, ax = plt.subplots(figsize=(10, 8))
+    bars = ax.barh(nomes, valores, color=cores, edgecolor='none')
+
+    for bar, val in zip(bars, valores):
+        ax.text(val + max(valores) * 0.005, bar.get_y() + bar.get_height() / 2,
+                str(val), va='center', fontsize=9)
+
+    ax.set_title(f'Top {top_n} Atores por Número de Colaboradores — Netflix',
+                 fontsize=13, fontweight='bold', pad=15)
+    ax.set_xlabel('Número de Colaboradores Únicos (Grau)', fontsize=11)
+    ax.set_ylabel('Ator', fontsize=11)
+    ax.grid(axis='x', linestyle='--', alpha=0.7)
+
+    plt.tight_layout()
+    caminho = os.path.join(pasta_saida, 'parte2_ranking_atores.png')
+    plt.savefig(caminho, dpi=300, bbox_inches='tight')
+    plt.close()
+    print(f"[Parte 2] Ranking de atores salvo em: {caminho}")
+    return caminho
+
+
 def main():
     try:
         # ── Dados (Parte 1) ──
@@ -300,7 +450,7 @@ def main():
         calcular_metricas()              # Q3 — global/regioes/ego
         calcular_rotas_dijkstra()        # Q6 — distancias_rotas.csv
 
-        # ── Visualizações estáticas em out/ (módulo viz.py) ──
+        # ── Visualizações estáticas Parte 1 em out/ (módulo viz.py) ──
         gerar_arvore_percurso()          # Q7
         gerar_grafo_interativo()         # Q9
         gerar_histograma_graus()         # Q8
@@ -310,8 +460,11 @@ def main():
         gerar_bfs_camadas()              # Q8
         analise_avd()                    # Q10 — relatório + 4 visualizações
 
-        # ── Parte 2 (em desenvolvimento pelos colegas) ──
-        criar_grafo_atores()
+        # ── Parte 2 — grafo de atores + visualizações (colegas) ──
+        grafo_p2 = criar_grafo_atores()
+        gerar_distribuicao_graus_parte2(grafo_p2)
+        gerar_heatmap_distancias_parte2(grafo_p2)
+        gerar_ranking_atores_parte2(grafo_p2)
 
         # ── Front React (camada de apresentação por cima dos dados) ──
         exportar_react_data()            # gera dashboard/src/data.js
