@@ -11,7 +11,7 @@ function MiniBar({ data, dataKey, label, fmt }) {
   return (
     <div>
       <p style={{ color: '#94a3b8', fontSize: 12, marginBottom: 6, paddingLeft: 6 }}>{label}</p>
-      <ResponsiveContainer width="100%" height={240}>
+      <ResponsiveContainer width="100%" height={185}>
         <BarChart data={data} margin={{ top: 28, right: 12, left: 0, bottom: 32 }}>
           <CartesianGrid vertical={false} stroke={GRID} />
           <XAxis
@@ -60,10 +60,10 @@ function MiniBar({ data, dataKey, label, fmt }) {
 
 export default function RegioesChart({ data }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
-      <MiniBar data={data} dataKey="ordem"      label="Aeroportos por região"     fmt={v => v} />
-      <MiniBar data={data} dataKey="tamanho"    label="Arestas internas"           fmt={v => v} />
-      <MiniBar data={data} dataKey="grau_medio" label="Grau médio"                 fmt={v => v.toFixed(1)} />
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
+      <MiniBar data={data} dataKey="ordem"      label="Aeroportos por região"   fmt={v => v} />
+      <MiniBar data={data} dataKey="tamanho"    label="Arestas internas"         fmt={v => v} />
+      <MiniBar data={data} dataKey="grau_medio" label="Grau médio por região"    fmt={v => v.toFixed(1)} />
     </div>
   )
 }

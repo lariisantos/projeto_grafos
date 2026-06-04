@@ -1,8 +1,10 @@
+// Paleta canônica por região — espelhada em src/viz.py (Python) para
+// garantir conformidade visual entre o front React e as saídas estáticas.
 export const CORES = {
   Nordeste:     '#E63946',
   Sudeste:      '#457B9D',
   Sul:          '#2A9D8F',
-  Norte:        '#A16207',
+  Norte:        '#E9C46A',
   'Centro-Oeste': '#F4A261',
 }
 

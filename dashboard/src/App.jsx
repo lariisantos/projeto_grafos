@@ -52,12 +52,63 @@ function SectionHeader({ title, sub }) {
   )
 }
 
+/**
+ * Linha de gráficos RELACIONADOS.
+ * O banner explicita a relação entre os dois gráficos (requisito do projeto:
+ * apenas gráficos com relação ficam na mesma linha, e a relação fica no texto).
+ */
+function RelationRow({ eyebrow, accent, title, relation, children }) {
+  return (
+    <section style={{ marginBottom: 30 }}>
+      <div style={{
+        background: 'rgba(15,23,42,0.55)',
+        border: '1px solid rgba(148,163,184,.14)',
+        borderLeft: `4px solid ${accent}`,
+        borderRadius: 14, padding: '14px 18px', marginBottom: 16,
+      }}>
+        <span style={{
+          display: 'inline-block', fontSize: 10.5, fontWeight: 800, letterSpacing: '.09em',
+          textTransform: 'uppercase', color: accent, marginBottom: 4,
+        }}>
+          {eyebrow}
+        </span>
+        <h3 style={{ fontSize: 16, fontWeight: 800, color: '#f0f9ff', marginBottom: 6, letterSpacing: '-.02em' }}>{title}</h3>
+        <p style={{ fontSize: 13, color: '#cbd5e1', lineHeight: 1.6, margin: 0 }}>
+          <strong style={{ color: '#e2e8f0' }}>Como ler em conjunto:</strong> {relation}
+        </p>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: 18, alignItems: 'stretch' }}>
+        {children}
+      </div>
+    </section>
+  )
+}
+
+/* Caixa de descrição/insight para visualizações que ocupam a aba inteira */
+function InsightBanner({ accent, title, children }) {
+  return (
+    <div style={{
+      background: `${accent}0f`, border: `1px solid ${accent}33`,
+      borderRadius: 16, padding: '14px 18px', marginBottom: 18,
+      display: 'flex', gap: 12, alignItems: 'flex-start',
+    }}>
+      <span style={{
+        flexShrink: 0, fontSize: 11, fontWeight: 900, letterSpacing: '.05em',
+        textTransform: 'uppercase', color: accent, marginTop: 2,
+      }}>
+        {title}
+      </span>
+      <p style={{ fontSize: 13, color: '#cbd5e1', lineHeight: 1.6, margin: 0 }}>{children}</p>
+    </div>
+  )
+}
+
 export default function App() {
   const [tab, setTab] = useState('analise')
-  const { global: glob, regioes, egoAeroportos, histData, regData,
+  const { global: glob, regioes, egoAeroportos, histData,
           composicao, hubs, grafoDados, percursosDados } = DATA
 
-  const media  = egoAeroportos.reduce((s, a) => s + a.grau, 0) / egoAeroportos.length
+  const media = egoAeroportos.reduce((s, a) => s + a.grau, 0) / egoAeroportos.length
   const hubTop = [...egoAeroportos].sort((a, b) => b.grau - a.grau)[0]
 
   return (
@@ -99,36 +150,87 @@ export default function App() {
 
       {/* TABS */}
       <nav style={{ display: 'flex', gap: 2, borderBottom: '1px solid rgba(148,163,184,.16)', marginBottom: 32 }}>
-        <TabBtn label="Análise Q10"   active={tab === 'analise'}    onClick={() => setTab('analise')} />
-        <TabBtn label="Percursos"     active={tab === 'percursos'}  onClick={() => setTab('percursos')} />
-        <TabBtn label="Grafo da Rede" active={tab === 'rede'}       onClick={() => setTab('rede')} />
+        <TabBtn label="Análise da Rede" active={tab === 'analise'}    onClick={() => setTab('analise')} />
+        <TabBtn label="Percursos"       active={tab === 'percursos'}  onClick={() => setTab('percursos')} />
+        <TabBtn label="Grafo da Rede"   active={tab === 'rede'}       onClick={() => setTab('rede')} />
       </nav>
 
       {/* ABA ANALISE */}
       {tab === 'analise' && (
         <div style={{ animation: 'fadeUp .28s ease' }}>
-          <SectionHeader title="Análise Exploratória e Explanatória" sub="Passe o mouse para detalhes · Clique na legenda para filtrar" />
-          <div style={{ display: 'grid', gap: 20 }}>
-            <ChartCard title="Exploratório 1 — Distribuição dos Graus" sub="Histograma de graus e grau médio por região">
-              <GrauChart histData={histData} regData={regData} media={media} />
+          <SectionHeader
+            title="Análise Exploratória e Explanatória"
+            sub="Gráficos relacionados ficam lado a lado · cada linha começa explicando a relação entre eles · passe o mouse para detalhes"
+          />
+
+          {/* LINHA 1 — Exploratórias: comportamento dos dados */}
+          <RelationRow
+            eyebrow="Exploratória · comportamento da rede"
+            accent="#3b82f6"
+            title="Quão conectado é cada aeroporto — e por quê"
+            relation="o histograma mostra QUANTAS conexões cada aeroporto tem, e a composição mostra de que TIPO elas são. A cauda direita do histograma (graus 6–9) corresponde exatamente aos aeroportos que concentram conexões de hub nacional na composição ao lado — alto grau e papel de hub andam juntos."
+          >
+            <ChartCard
+              title="Distribuição dos graus"
+              sub="Histograma · quantos aeroportos existem para cada grau"
+              tag="Exploratória 1"
+              accent="#3b82f6"
+              insight="A distribuição é assimétrica à direita: a maioria dos aeroportos tem grau entre 3 e 5 e apenas 4 superam a média de 4,5 conexões. É a assinatura de uma rede de poucos hubs dominantes, em vez de conexões uniformes."
+            >
+              <GrauChart histData={histData} media={media} />
             </ChartCard>
-            <ChartCard title="Exploratório 2 — Composição das Conexões" sub="Tipos de conexão em cada aeroporto (barras empilhadas)">
+
+            <ChartCard
+              title="Composição das conexões"
+              sub="Barras empilhadas · tipo de aresta em cada aeroporto"
+              tag="Exploratória 2"
+              accent="#2dd4bf"
+              insight="Decompõe o grau de cada aeroporto pelos três tipos de aresta do nosso modelo (regional, hub regional, hub nacional). Os maiores graus vêm de conexões de hub nacional: o alto grau resulta do papel de articulação entre regiões, não de muitas rotas locais."
+            >
               <ComposicaoChart data={composicao} />
             </ChartCard>
-            <ChartCard title="Explanatório 1 — Ranking de Hubs" sub="Aeroportos ordenados pelo grau, coloridos por região">
+          </RelationRow>
+
+          {/* LINHA 2 — Explanatórias: comunicação de insights */}
+          <RelationRow
+            eyebrow="Explanatória · comunicando os insights"
+            accent="#fbbf24"
+            title="Onde está concentrada a conectividade"
+            relation="os dois mudam de escala — o ranking olha o aeroporto individual, a comparação agrega por região. Lendo em conjunto, os hubs do topo do ranking (REC, GRU, MAO) são os que puxam o grau médio das suas regiões, e por isso Nordeste e Sudeste lideram a malha."
+          >
+            <ChartCard
+              title="Ranking de hubs"
+              sub="Barra ordenada · grau de cada aeroporto, colorido por região"
+              tag="Explanatória 1"
+              accent="#fbbf24"
+              insight="Recife (9), Guarulhos (8) e Manaus (7) são os principais hubs da rede. Abaixo da média (4,5) ficam aeroportos periféricos como Goiânia (1) e Curitiba/Florianópolis (2). A cor revela a região a que cada hub pertence."
+            >
               <HubsChart data={hubs} media={media} />
             </ChartCard>
-            <ChartCard title="Explanatório 2 — Comparação entre Regiões" sub="Volume de aeroportos, arestas internas e grau médio">
+
+            <ChartCard
+              title="Comparação entre regiões"
+              sub="3 indicadores · nº de aeroportos, arestas internas e grau médio"
+              tag="Explanatória 2"
+              accent="#a78bfa"
+              insight="Agrega a rede por região. O Nordeste lidera nos três indicadores (6 aeroportos, 15 arestas internas, grau médio 5,7), seguido do Sudeste — concentração coerente com a presença dos maiores hubs nessas regiões."
+            >
               <RegioesChart data={regioes} />
             </ChartCard>
-          </div>
+          </RelationRow>
         </div>
       )}
 
       {/* ABA PERCURSOS */}
       {tab === 'percursos' && (
         <div style={{ animation: 'fadeUp .28s ease' }}>
-          <SectionHeader title="Percursos Obrigatórios" sub="Caminhos de menor custo via Dijkstra · Arraste nós, pan e scroll para zoom" />
+          <SectionHeader title="Percursos Obrigatórios" sub="Caminhos de menor custo via Dijkstra · arraste nós, pan e scroll para zoom" />
+          <InsightBanner accent="#2dd4bf" title="O que isto mostra">
+            Cada cor é um percurso de menor custo resolvido pelo nosso Dijkstra; os rótulos das arestas trazem o peso
+            do modelo (1.0 regional · 1.5 hub regional · 2.0 hub nacional). Repare que quase todos os caminhos passam
+            por um hub (GRU, REC): é o efeito direto da nossa régua de pesos, que torna as conexões via hub o trajeto
+            mais barato entre regiões distantes.
+          </InsightBanner>
           {percursosDados
             ? <RouteTree percursosDados={percursosDados} />
             : <p style={{ color: '#94a3b8', padding: 24 }}>Dados indisponíveis. Execute python src/solve.py.</p>
@@ -139,7 +241,13 @@ export default function App() {
       {/* ABA REDE */}
       {tab === 'rede' && (
         <div style={{ animation: 'fadeUp .28s ease' }}>
-          <SectionHeader title="Grafo Completo da Rede" sub="Simulação de física interativa · Nós coloridos por região, arestas por tipo de conexão" />
+          <SectionHeader title="Grafo Completo da Rede" sub="Simulação de física interativa · nós coloridos por região, arestas por tipo de conexão" />
+          <InsightBanner accent="#3b82f6" title="O que isto mostra">
+            A malha inteira: {glob.ordem} aeroportos e {glob.tamanho} conexões. Os nós são coloridos por região e se
+            organizam por uma simulação de forças; a espessura/cor das arestas distingue conexões regionais, de hub
+            regional e de hub nacional. Visualmente, os cinco hubs nacionais (REC, GRU, MAO, POA, BSB) formam o núcleo
+            que costura as cinco regiões do país.
+          </InsightBanner>
           {grafoDados
             ? <NetworkGraph grafoDados={grafoDados} />
             : <p style={{ color: '#94a3b8', padding: 24 }}>Dados indisponíveis. Execute python src/solve.py.</p>
@@ -149,7 +257,7 @@ export default function App() {
 
       <footer style={{ marginTop: 48, paddingTop: 24, borderTop: '1px solid rgba(148,163,184,.14)', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, color: '#64748b', fontSize: 12 }}>
         <span>Teoria dos Grafos — Rede de Aeroportos do Brasil</span>
-        <span>React · Recharts · SVG · Python</span>
+        <span>Front em React · Recharts &amp; SVG · Dados gerados em Python</span>
       </footer>
 
       <style>{`@keyframes fadeUp { from { opacity:0; transform:translateY(10px) } to { opacity:1; transform:none } }`}</style>

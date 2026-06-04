@@ -41,7 +41,7 @@ function CustomTooltip({ active, payload }) {
 export default function HubsChart({ data, media }) {
   const maxGrau = Math.max(...data.map(d => d.grau))
   return (
-    <ResponsiveContainer width="100%" height={Math.max(380, data.length * 28)}>
+    <ResponsiveContainer width="100%" height={Math.max(440, data.length * 31)}>
       <BarChart
         data={data}
         layout="vertical"
