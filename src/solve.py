@@ -16,7 +16,10 @@ from graphs.algorithms import dijkstra
 from graphs.io import carregar_aeroportos, carregar_grafo, carregar_e_validar_elencos
 from graphs.graph import Grafo
 from graphs.metrics import metricas_subgrafo, ego_rede
-from export_react import exportar_react_data, exportar_react_data_parte2, buildar_react
+from export_react import (
+    exportar_react_data, exportar_react_data_parte2,
+    exportar_grafo_render_json, buildar_react,
+)
 
 # Toda a camada visual do projeto vive em viz.py (módulo visual único).
 # solve.py apenas calcula dados e orquestra a geração das visualizações.
@@ -298,6 +301,40 @@ def criar_grafo_atores(
     return grafo
 
 
+def subgrafo_top_grau(grafo: Grafo, n_atores: int = 15000) -> Grafo:
+    """
+    [Parte 2] Subgrafo INDUZIDO com os `n_atores` vértices de maior grau e
+    apenas as arestas entre eles. Preserva o núcleo mais conectado da rede.
+    """
+    graus = {no: len(viz) for no, viz in grafo.adj.items()}
+    selecionados = sorted(graus, key=graus.get, reverse=True)[:n_atores]
+    sel_set = set(selecionados)
+
+    sub = Grafo()
+    for ator in selecionados:
+        sub.adicionar_vertice(ator, grafo.nodes_info.get(ator, {"tipo": "Ator"}))
+    for ator in selecionados:
+        for viz, peso in grafo.adj[ator].items():
+            if viz in sel_set:
+                sub.adicionar_aresta(ator, viz, peso)
+
+    arestas = sum(len(v) for v in sub.adj.values()) // 2
+    print(f"[Parte 2] Subgrafo top-{n_atores} por grau criado. "
+          f"Ordem={len(sub.adj)} atores, arestas={arestas}.")
+    return sub
+
+
+def gerar_grafo_15k_render(grafo_completo: Grafo, n_atores: int = 15000) -> Grafo:
+    """
+    [Parte 2] Versão do grafo de colaboração com os `n_atores` atores mais
+    conectados, com layout 2D calculado e exportado para o Canvas do front
+    (dashboard/public/grafo_parte2_15k.json) desenhar TODOS os nós.
+    """
+    sub = subgrafo_top_grau(grafo_completo, n_atores)
+    exportar_grafo_render_json(sub, nome_arquivo=f"grafo_parte2_{n_atores // 1000}k.json")
+    return sub
+
+
 def gerar_distribuicao_graus_parte2(grafo, pasta_saida: str = 'out') -> str:
     """Histograma da distribuição de graus do grafo de colaboração de atores Netflix."""
     os.makedirs(pasta_saida, exist_ok=True)
@@ -465,6 +502,7 @@ def main():
         gerar_distribuicao_graus_parte2(grafo_p2)
         gerar_heatmap_distancias_parte2(grafo_p2)
         gerar_ranking_atores_parte2(grafo_p2)
+        gerar_grafo_15k_render(grafo_p2)  # layout 15k p/ Canvas -> public/grafo_parte2_15k.json
 
         # ── Front React (camada de apresentação por cima dos dados) ──
         exportar_react_data()            # Parte 1 -> dashboard/src/data.js

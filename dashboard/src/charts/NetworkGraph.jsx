@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { CORES } from '../constants'
 
 const EDGE_COLORS = {
@@ -13,6 +13,11 @@ const EDGE_LABELS = {
   hub_nacional: 'Hub nacional',
 }
 
+// Destaque do caminho mínimo (Dijkstra)
+const PATH_EDGE    = '#fbbf24' // aresta da rota — âmbar, contrasta com azul/cinza
+const ROLE_ORIGEM  = '#34d399' // origem  — verde
+const ROLE_DESTINO = '#60a5fa' // destino — azul
+
 const NODE_R   = 22
 const REPULSION = 6000
 const SPRING_K  = 0.03
@@ -20,6 +25,44 @@ const REST_LEN  = 180
 const GRAVITY   = 0.005
 const DAMP      = 0.72
 const MAX_TICKS = 400
+
+// ── Caminho mínimo no navegador ──────────────────────────────────────────
+// O grafo da Parte 1 é pequeno (20 nós / 45 arestas), então rodamos o Dijkstra
+// direto no front a cada seleção: qualquer par origem→destino funciona, sem
+// depender de rotas pré-calculadas. Os pesos saem do próprio modelo (e.peso).
+function buildAdjacency(edges) {
+  const adj = {}
+  edges.forEach(e => {
+    const a = e.source, b = e.target, w = e.peso ?? 1
+    ;(adj[a] ||= []).push({ to: b, w })
+    ;(adj[b] ||= []).push({ to: a, w })
+  })
+  return adj
+}
+
+function dijkstra(adj, origem, destino) {
+  if (!adj[origem] || !adj[destino]) return null
+  const dist = {}, prev = {}, visited = {}
+  for (const k in adj) dist[k] = Infinity
+  dist[origem] = 0
+  while (true) {
+    let u = null, best = Infinity
+    for (const k in dist) {
+      if (!visited[k] && dist[k] < best) { best = dist[k]; u = k }
+    }
+    if (u === null || u === destino) break
+    visited[u] = true
+    for (const { to, w } of adj[u]) {
+      const nd = dist[u] + w
+      if (nd < dist[to]) { dist[to] = nd; prev[to] = u }
+    }
+  }
+  if (dist[destino] === Infinity) return null
+  const caminho = []
+  let cur = destino
+  while (cur !== undefined) { caminho.unshift(cur); cur = prev[cur] }
+  return { custo: Math.round(dist[destino] * 100) / 100, caminho }
+}
 
 function initPositions(nodes, w, h) {
   const regions   = [...new Set(nodes.map(n => n.regiao))]
@@ -98,6 +141,38 @@ export default function NetworkGraph({ grafoDados }) {
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 })
   const transformRef = useRef({ x: 0, y: 0, scale: 1 })
   const [tooltip, setTooltip] = useState(null)
+
+  // ── Caminho mínimo (origem / destino) ──
+  const [origem, setOrigem]   = useState('')
+  const [destino, setDestino] = useState('')
+
+  const aeroportos = useMemo(
+    () => nodes.map(n => ({ id: n.id, cidade: n.cidade }))
+               .sort((a, b) => a.id.localeCompare(b.id)),
+    [nodes],
+  )
+  const adjacency = useMemo(() => buildAdjacency(edges), [edges])
+
+  const route = useMemo(() => {
+    if (!origem || !destino) return { tipo: 'inicial' }
+    if (origem === destino)  return { tipo: 'iguais' }
+    const r = dijkstra(adjacency, origem, destino)
+    if (!r) return { tipo: 'sem_caminho' }
+    return { tipo: 'ok', custo: r.custo, caminho: r.caminho }
+  }, [origem, destino, adjacency])
+
+  // Conjuntos de destaque derivados da rota
+  const hasRoute   = route.tipo === 'ok'
+  const soloNode   = route.tipo === 'iguais' ? origem : null
+  const pathIndex  = {}
+  const pathEdges  = new Set()
+  if (hasRoute) {
+    route.caminho.forEach((id, i) => { pathIndex[id] = i })
+    for (let i = 0; i < route.caminho.length - 1; i++) {
+      pathEdges.add([route.caminho[i], route.caminho[i + 1]].sort().join('~'))
+    }
+  }
+  const lastIdx = hasRoute ? route.caminho.length - 1 : -1
 
   const startSim = useCallback((w, h) => {
     cancelAnimationFrame(animRef.current)
@@ -239,6 +314,83 @@ export default function NetworkGraph({ grafoDados }) {
         onMouseLeave={onMouseUp}
         onWheel={onWheel}
       >
+        {/* Menu de caminho mínimo (origem → destino via Dijkstra) */}
+        <div
+          style={mStyles.panel}
+          onWheel={e => e.stopPropagation()}
+          onMouseDown={e => e.stopPropagation()}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <h4 style={mStyles.titulo}>Caminho mínimo</h4>
+            {(origem || destino) && (
+              <button onClick={() => { setOrigem(''); setDestino('') }} style={mStyles.limpar}>limpar</button>
+            )}
+          </div>
+
+          <label style={mStyles.label}>Origem</label>
+          <select style={mStyles.select} value={origem} onChange={e => setOrigem(e.target.value)}>
+            <option value="">— selecione —</option>
+            {aeroportos.map(a => (
+              <option key={a.id} value={a.id}>{a.id} · {a.cidade}</option>
+            ))}
+          </select>
+
+          <label style={{ ...mStyles.label, marginTop: 8 }}>Destino</label>
+          <select style={mStyles.select} value={destino} onChange={e => setDestino(e.target.value)}>
+            <option value="">— selecione —</option>
+            {aeroportos.map(a => (
+              <option key={a.id} value={a.id}>{a.id} · {a.cidade}</option>
+            ))}
+          </select>
+
+          <div style={mStyles.status}>
+            {route.tipo === 'inicial' && (
+              <span style={{ color: '#94a3b8' }}>
+                Escolha origem e destino para destacar o caminho de menor custo (Dijkstra).
+              </span>
+            )}
+
+            {route.tipo === 'iguais' && (
+              <span style={{ color: '#cbd5e1' }}>
+                <strong style={{ color: '#f0f9ff' }}>Origem e destino iguais.</strong><br />Custo: 0.0
+              </span>
+            )}
+
+            {route.tipo === 'sem_caminho' && (
+              <span style={{ color: '#f87171', fontWeight: 700 }}>
+                Sem caminho viável entre os aeroportos.
+              </span>
+            )}
+
+            {route.tipo === 'ok' && (
+              <>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 6 }}>
+                  <span style={{ color: '#94a3b8' }}>Custo total</span>
+                  <strong style={{ color: PATH_EDGE, fontSize: 16 }}>{route.custo}</strong>
+                </div>
+                <div style={{ color: '#e2e8f0', fontSize: 12, lineHeight: 1.5, fontWeight: 700 }}>
+                  {route.caminho.map((id, i) => (
+                    <span key={i}>
+                      <span style={{
+                        color: i === 0 ? ROLE_ORIGEM : i === lastIdx ? ROLE_DESTINO : PATH_EDGE,
+                      }}>{id}</span>
+                      {i < lastIdx && <span style={{ color: '#475569' }}> → </span>}
+                    </span>
+                  ))}
+                </div>
+                <div style={mStyles.legenda}>
+                  {[['Origem', ROLE_ORIGEM], ['Destino', ROLE_DESTINO], ['Rota', PATH_EDGE]].map(([lbl, cor]) => (
+                    <span key={lbl} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: cor, display: 'inline-block' }} />
+                      {lbl}
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
         <svg
           width="100%"
           height={size.h}
@@ -249,13 +401,29 @@ export default function NetworkGraph({ grafoDados }) {
             {edges.map((e, i) => {
               const a = posMap[e.source], b = posMap[e.target]
               if (!a || !b) return null
+              const onPath = hasRoute && pathEdges.has([e.source, e.target].sort().join('~'))
+              let stroke  = EDGE_COLORS[e.tipo] ?? '#1e3a5f'
+              let width   = e.peso * 1.8
+              let opacity = 0.9
+              let glow
+              if (hasRoute) {
+                if (onPath) {
+                  stroke = PATH_EDGE
+                  width  = Math.max(e.peso * 1.8, 5.5)
+                  opacity = 1
+                  glow   = `drop-shadow(0 0 6px ${PATH_EDGE}aa)`
+                } else {
+                  opacity = 0.1
+                }
+              }
               return (
                 <line key={i}
                   x1={a.x} y1={a.y} x2={b.x} y2={b.y}
-                  stroke={EDGE_COLORS[e.tipo] ?? '#1e3a5f'}
-                  strokeWidth={e.peso * 1.8}
-                  opacity={0.9}
+                  stroke={stroke}
+                  strokeWidth={width}
+                  opacity={opacity}
                   strokeLinecap="round"
+                  style={glow ? { filter: glow } : undefined}
                 />
               )
             })}
@@ -264,19 +432,40 @@ export default function NetworkGraph({ grafoDados }) {
               const p   = posMap[n.id]
               if (!p) return null
               const cor = CORES[n.regiao] ?? '#64748b'
+
+              // papel do nó na rota destacada
+              const role = !hasRoute ? null
+                : pathIndex[n.id] === undefined ? 'dim'
+                : pathIndex[n.id] === 0 ? 'origem'
+                : pathIndex[n.id] === lastIdx ? 'destino'
+                : 'meio'
+
+              let ring = 'rgba(255,255,255,.25)', ringW = 2
+              let gOpacity = 1, glowColor = cor, glowBlur = 8, ringFill = cor, ringFillOp = 0.15
+              if (role === 'dim') {
+                gOpacity = 0.2
+              } else if (role) {
+                ringW = 4.5; glowBlur = 15
+                const c = role === 'origem' ? ROLE_ORIGEM : role === 'destino' ? ROLE_DESTINO : PATH_EDGE
+                ring = c; glowColor = c; ringFill = c; ringFillOp = 0.28
+              } else if (soloNode === n.id) {
+                ringW = 4.5; glowBlur = 15
+                ring = PATH_EDGE; glowColor = PATH_EDGE; ringFill = PATH_EDGE; ringFillOp = 0.28
+              }
+
               return (
                 <g key={n.id} className="node-g"
                   transform={`translate(${p.x},${p.y})`}
-                  style={{ cursor: 'move' }}
+                  style={{ cursor: 'move', opacity: gOpacity }}
                   onMouseDown={e => onNodeMouseDown(e, n.id)}
                   onMouseEnter={e => setTooltip({ node: n, x: e.clientX, y: e.clientY })}
                   onMouseMove={e => setTooltip(t => t ? { ...t, x: e.clientX, y: e.clientY } : null)}
                   onMouseLeave={() => setTooltip(null)}
                 >
                   {/* glow ring */}
-                  <circle r={NODE_R + 6} fill={cor} opacity={0.15} />
-                  <circle r={NODE_R} fill={cor} stroke="rgba(255,255,255,.25)" strokeWidth={2}
-                    style={{ filter: `drop-shadow(0 0 8px ${cor}88)` }} />
+                  <circle r={NODE_R + 6} fill={ringFill} opacity={ringFillOp} />
+                  <circle r={NODE_R} fill={cor} stroke={ring} strokeWidth={ringW}
+                    style={{ filter: `drop-shadow(0 0 ${glowBlur}px ${glowColor}88)` }} />
                   <text textAnchor="middle" dominantBaseline="middle"
                     fill="#fff" fontSize={11} fontWeight={900}
                     style={{ pointerEvents: 'none', userSelect: 'none', fontFamily: 'Inter,sans-serif' }}>
@@ -335,4 +524,40 @@ export default function NetworkGraph({ grafoDados }) {
       </div>
     </div>
   )
+}
+
+const mStyles = {
+  panel: {
+    position: 'absolute', top: 12, left: 12, zIndex: 20, width: 226,
+    background: 'rgba(2,6,23,0.92)', backdropFilter: 'blur(6px)',
+    border: '1px solid rgba(99,179,237,.22)', borderRadius: 14,
+    padding: '12px 14px', boxShadow: '0 16px 40px rgba(0,0,0,.5)',
+    fontFamily: 'Inter,sans-serif',
+  },
+  titulo: {
+    margin: 0, color: '#f0f9ff', fontSize: 13, fontWeight: 800,
+    letterSpacing: '.01em',
+  },
+  limpar: {
+    border: '1px solid rgba(148,163,184,.2)', background: 'rgba(30,41,59,.9)',
+    color: '#94a3b8', borderRadius: 7, padding: '3px 9px', cursor: 'pointer',
+    fontSize: 11, fontWeight: 700, fontFamily: 'inherit',
+  },
+  label: {
+    display: 'block', fontSize: 10.5, fontWeight: 700, color: '#7c8aa0',
+    textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 4,
+  },
+  select: {
+    width: '100%', padding: '6px 8px', borderRadius: 8,
+    border: '1px solid rgba(148,163,184,.25)', background: 'rgba(15,23,42,.95)',
+    color: '#e2e8f0', fontSize: 12.5, fontFamily: 'inherit', cursor: 'pointer',
+  },
+  status: {
+    marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(148,163,184,.14)',
+    fontSize: 12, minHeight: 40, lineHeight: 1.45,
+  },
+  legenda: {
+    display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 9,
+    fontSize: 10.5, color: '#94a3b8',
+  },
 }

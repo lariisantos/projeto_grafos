@@ -10,6 +10,8 @@ import shutil
 import subprocess
 import sys
 
+import numpy as np
+
 # Paleta usada para colorir cada percurso no RouteTree
 ROTA_CORES = ["#3b82f6", "#ff4d6d", "#2dd4bf", "#fbbf24", "#a78bfa", "#f97316", "#34d399", "#f472b6"]
 
@@ -266,6 +268,66 @@ def _bfs_dist(adj, origem):
     return dist
 
 
+def _params_histograma(grau_max, n_bins=12):
+    """Largura da faixa e índice do último bin, dado o grau máximo GLOBAL.
+    Usado para que todos os histogramas (geral + por gênero) compartilhem o
+    mesmo eixo X, ficando comparáveis."""
+    largura = max(1, math.ceil((grau_max + 1) / n_bins))
+    b_max = grau_max // largura
+    return largura, b_max
+
+
+def _histograma_de_graus(valores, largura, b_max):
+    """Monta as faixas [{faixa, ini, count}] a partir de uma lista de graus."""
+    faixas = {}
+    for d in valores:
+        faixas[d // largura] = faixas.get(d // largura, 0) + 1
+    out = []
+    for b in range(b_max + 1):
+        ini, fim = b * largura, b * largura + largura - 1
+        out.append({"faixa": f"{ini}–{fim}", "ini": ini, "count": faixas.get(b, 0)})
+    return out
+
+
+def _build_generos_dados(grafo, caminho_dataset, top_generos=12, top_ranking=20):
+    """Filtro por GÊNERO para os gráficos da Parte 2.
+
+    O gênero é um filtro de PERTENCIMENTO ("atores de comédia/drama…"): o grau
+    continua sendo o nº global de colaboradores; só muda QUEM aparece. Lê os
+    gêneros (`listed_in`) e o elenco (`cast`) direto do CSV, sem mexer no grafo.
+    Para cada gênero do topo (por nº de atores) gera ranking + histograma."""
+    graus = {no: len(viz) for no, viz in grafo.adj.items()}
+
+    # gênero -> conjunto de atores que aparecem em pelo menos um título do gênero
+    genero_atores: dict[str, set] = {}
+    with open(caminho_dataset, encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            cast = [a.strip() for a in (row.get("cast") or "").split(",") if a.strip()]
+            gens = [g.strip() for g in (row.get("listed_in") or "").split(",") if g.strip()]
+            if not cast or not gens:
+                continue
+            for g in gens:
+                alvo = genero_atores.setdefault(g, set())
+                for a in cast:
+                    if a in graus:
+                        alvo.add(a)
+
+    top = sorted(genero_atores, key=lambda g: len(genero_atores[g]), reverse=True)[:top_generos]
+
+    grau_max = max(graus.values()) if graus else 0
+    largura, b_max = _params_histograma(grau_max)
+
+    ranking, histograma, contagem = {}, {}, {}
+    for g in top:
+        atores = genero_atores[g]
+        ordenados = sorted(atores, key=lambda a: graus[a], reverse=True)[:top_ranking]
+        ranking[g] = [{"ator": a, "grau": graus[a]} for a in ordenados]
+        histograma[g] = _histograma_de_graus([graus[a] for a in atores], largura, b_max)
+        contagem[g] = len(atores)
+
+    return {"lista": top, "ranking": ranking, "histograma": histograma, "contagem": contagem}
+
+
 def _build_parte2_dados(grafo, top_ranking=20, top_heatmap=12, ego_vizinhos=22):
     graus = {no: len(viz) for no, viz in grafo.adj.items()}
     n = len(graus)
@@ -275,18 +337,10 @@ def _build_parte2_dados(grafo, top_ranking=20, top_heatmap=12, ego_vizinhos=22):
     ator_top = max(graus, key=graus.get) if graus else None
     ator_top_grau = graus.get(ator_top, 0)
 
-    # Histograma — faixas lineares de grau
+    # Histograma — faixas lineares de grau (mesmo binning dos gêneros)
     grau_max = max(graus.values()) if graus else 0
-    n_bins = 12
-    largura = max(1, math.ceil((grau_max + 1) / n_bins))
-    faixas = {}
-    for d in graus.values():
-        faixas[d // largura] = faixas.get(d // largura, 0) + 1
-    b_max = max(faixas.keys()) if faixas else -1
-    histograma = []
-    for b in range(b_max + 1):
-        ini, fim = b * largura, b * largura + largura - 1
-        histograma.append({"faixa": f"{ini}–{fim}", "ini": ini, "count": faixas.get(b, 0)})
+    largura, b_max = _params_histograma(grau_max)
+    histograma = _histograma_de_graus(graus.values(), largura, b_max)
 
     # Ranking dos atores mais conectados
     ordenados = sorted(graus.items(), key=lambda kv: kv[1], reverse=True)
@@ -333,10 +387,18 @@ def _build_parte2_dados(grafo, top_ranking=20, top_heatmap=12, ego_vizinhos=22):
     }
 
 
-def exportar_react_data_parte2(grafo):
+def exportar_react_data_parte2(grafo, caminho_dataset=os.path.join(DATA, "dataset_parte2.csv")):
     """Exporta os agregados da Parte 2 para dashboard/src/data_parte2.js."""
     os.makedirs(DASH_SRC, exist_ok=True)
     payload = _build_parte2_dados(grafo)
+
+    # filtro por gênero (ranking + histograma); "Todos" reaproveita o global
+    generos = _build_generos_dados(grafo, caminho_dataset)
+    generos["lista"] = ["Todos"] + generos["lista"]
+    generos["ranking"]["Todos"] = payload["ranking"]
+    generos["histograma"]["Todos"] = payload["histograma"]
+    payload["generos"] = generos
+
     data_js = (
         "// Gerado automaticamente por export_react.py -- nao edite manualmente\n"
         f"export const DATA_PARTE2 = {json.dumps(payload, ensure_ascii=False, indent=2)};\n"
@@ -345,7 +407,115 @@ def exportar_react_data_parte2(grafo):
     with open(dest, "w", encoding="utf-8") as f:
         f.write(data_js)
     print(f"[REACT] data_parte2.js gerado -> {dest} "
-          f"(ranking={len(payload['ranking'])}, rede={len(payload['rede']['nodes'])} nós)")
+          f"(ranking={len(payload['ranking'])}, generos={len(generos['lista'])}, "
+          f"rede={len(payload['rede']['nodes'])} nós)")
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# Layout 2D do grafo INTEIRO (para o Canvas do front desenhar TODOS os nós).
+# Fruchterman-Reingold acelerado por grade: a repulsão é aproximada por
+# centróides de célula (Barnes-Hut simplificado) -> O(n) por iteração, sem
+# matriz n×n. numpy vetoriza atração (bincount) e o passo de integração.
+# ──────────────────────────────────────────────────────────────────────────
+def _layout_forcas(grafo, iteracoes=120, seed=42, grav=0.06):
+    ids = list(grafo.adj.keys())
+    idx = {a: i for i, a in enumerate(ids)}
+    N = len(ids)
+
+    s, d = [], []
+    for a in ids:
+        ia = idx[a]
+        for b in grafo.adj[a]:
+            ib = idx[b]
+            if ia < ib:
+                s.append(ia); d.append(ib)
+    src = np.asarray(s, dtype=np.int64)
+    dst = np.asarray(d, dtype=np.int64)
+
+    rng = np.random.default_rng(seed)
+    W = 1000.0
+    pos = rng.uniform(0, W, size=(N, 2))
+    k = 0.9 * W / math.sqrt(max(N, 1))       # distância ótima entre nós
+    t = W * 0.10                              # temperatura (passo máximo)
+    cooling = t / (iteracoes + 1)
+    G = max(10, int(math.sqrt(N) / 4))        # resolução da grade
+    eps = 1e-4
+
+    for _ in range(iteracoes):
+        disp = np.zeros((N, 2))
+
+        # repulsão: cada célula ocupada age como um supernó (centróide × contagem)
+        mn = pos.min(axis=0)
+        span = np.maximum(pos.max(axis=0) - mn, eps)
+        cell = ((pos - mn) / span * (G - 1e-6)).astype(np.int64)
+        cid = cell[:, 0] * G + cell[:, 1]
+        ncell = G * G
+        cnt = np.bincount(cid, minlength=ncell).astype(np.float64)
+        sx = np.bincount(cid, weights=pos[:, 0], minlength=ncell)
+        sy = np.bincount(cid, weights=pos[:, 1], minlength=ncell)
+        occ = np.nonzero(cnt)[0]
+        cx, cy, cw = sx[occ] / cnt[occ], sy[occ] / cnt[occ], cnt[occ]
+        for j in range(len(occ)):
+            dx = pos[:, 0] - cx[j]
+            dy = pos[:, 1] - cy[j]
+            d2 = dx * dx + dy * dy + eps
+            f = cw[j] * (k * k) / d2
+            disp[:, 0] += f * dx
+            disp[:, 1] += f * dy
+
+        # atração ao longo das arestas (vetorizado via bincount)
+        if src.size:
+            delta = pos[dst] - pos[src]
+            dist = np.sqrt((delta * delta).sum(axis=1)) + eps
+            fa = (dist * dist) / k
+            cont = delta / dist[:, None] * fa[:, None]
+            disp[:, 0] += (np.bincount(src, weights=cont[:, 0], minlength=N)
+                           - np.bincount(dst, weights=cont[:, 0], minlength=N))
+            disp[:, 1] += (np.bincount(src, weights=cont[:, 1], minlength=N)
+                           - np.bincount(dst, weights=cont[:, 1], minlength=N))
+
+        # gravidade em direção ao centro: impede nós pouco conectados de voarem
+        C = pos.mean(axis=0)
+        disp += grav * (C - pos)
+
+        # limita o passo pela temperatura e aplica
+        dlen = np.sqrt((disp * disp).sum(axis=1)) + eps
+        pos += disp * (np.minimum(dlen, t) / dlen)[:, None]
+        t = max(t - cooling, 0.0)
+
+    return pos, ids, src, dst
+
+
+def exportar_grafo_render_json(grafo, nome_arquivo="grafo_parte2_15k.json", n_labels=24):
+    """Calcula o layout do grafo inteiro e grava um JSON compacto em public/
+    com posições + arestas, para o Canvas do front desenhar TODOS os nós."""
+    os.makedirs(DASH_PUB, exist_ok=True)
+    pos, ids, src, dst = _layout_forcas(grafo)
+    N = len(ids)
+    graus = [len(grafo.adj[a]) for a in ids]
+
+    # normaliza pelo intervalo 1–99% (robusto a outliers): o núcleo ocupa
+    # ~0..1000 e nós distantes caem fora dessa faixa (alcançáveis com zoom-out)
+    lo, hi = np.percentile(pos, 1, axis=0), np.percentile(pos, 99, axis=0)
+    span = np.where((hi - lo) < 1e-6, 1.0, (hi - lo))
+    coords = ((pos - lo) / span * 1000).round().astype(int)
+
+    labels = sorted(range(N), key=lambda i: graus[i], reverse=True)[:n_labels]
+    payload = {
+        "meta": {"n": N, "m": int(src.size), "grauMax": int(max(graus)) if graus else 0},
+        "ids": ids,
+        "g": graus,
+        "x": coords[:, 0].tolist(),
+        "y": coords[:, 1].tolist(),
+        "edges": np.column_stack([src, dst]).astype(int).ravel().tolist(),
+        "labels": labels,
+    }
+    dest = os.path.join(DASH_PUB, nome_arquivo)
+    with open(dest, "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, separators=(",", ":"))
+    print(f"[REACT] {nome_arquivo} gerado -> {dest} "
+          f"(N={N}, M={src.size}, {os.path.getsize(dest) / 1024:.0f} KB)")
+    return dest
 
 
 def buildar_react():

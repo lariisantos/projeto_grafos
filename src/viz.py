@@ -660,8 +660,8 @@ def exportar_grafo_interativo(
                 edge_cor = {
                     "hub_nacional": "#60a5fa",
                     "regional_hub": "#94a3b8",
-                    "regional":     "#334155",
-                }.get(tipo, "#334155")
+                    "regional":     "#C604D7",
+                }.get(tipo, "#3B89F6")
                 net.add_edge(
                     u, v, value=peso,
                     color={"color": edge_cor, "highlight": "#93c5fd", "opacity": 0.75},
@@ -880,6 +880,7 @@ def _avd_exp2_composicao(df_ego, df_adj, pasta):
     import pandas as pd
     import plotly.graph_objects as go
     TIPOS = ["regional", "regional_hub", "hub_nacional"]
+    TIPOS_PLOT = ["regional_hub", "hub_nacional"]  # exibe apenas os hubs
     contagem = {}
     for _, row in df_adj.iterrows():
         for no in [row["origem"], row["destino"]]:
@@ -894,7 +895,7 @@ def _avd_exp2_composicao(df_ego, df_adj, pasta):
         if t not in df_cont.columns:
             df_cont[t] = 0
     fig = go.Figure()
-    for tipo in TIPOS:
+    for tipo in TIPOS_PLOT:
         label = tipo.replace("_", " ").capitalize()
         fig.add_trace(go.Bar(
             x=df_cont["aeroporto"], y=df_cont[tipo].fillna(0), name=label,

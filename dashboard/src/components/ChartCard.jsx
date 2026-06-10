@@ -9,9 +9,10 @@
  *  - insight  : texto de leitura analítica — o que o gráfico revela p/ o projeto
  *  - children : o gráfico em si
  *  - fullWidth: ocupa a linha inteira do grid
+ *  - insightSide: posiciona o insight na lateral direita do gráfico (em vez de abaixo)
  */
 export default function ChartCard({
-  title, sub, tag, accent = '#3b82f6', insight, children, fullWidth = false,
+  title, sub, tag, accent = '#3b82f6', insight, children, fullWidth = false, insightSide = false,
 }) {
   return (
     <div
@@ -63,32 +64,63 @@ export default function ChartCard({
         )}
       </div>
 
-      {/* body — gráfico */}
-      <div style={{ padding: '16px 8px 6px', flex: 1 }}>
-        {children}
-      </div>
-
-      {/* insight — leitura analítica */}
-      {insight && (
-        <div style={{
-          margin: '8px 14px 16px',
-          padding: '12px 14px',
-          background: `${accent}0f`,
-          border: `1px solid ${accent}33`,
-          borderRadius: 14,
-          display: 'flex', gap: 10, alignItems: 'flex-start',
-        }}>
-          <span style={{
-            flexShrink: 0, marginTop: 1,
-            fontSize: 11, fontWeight: 900, letterSpacing: '.04em',
-            color: accent, textTransform: 'uppercase',
-          }}>
-            Insight
-          </span>
-          <p style={{ fontSize: 12.5, color: '#cbd5e1', lineHeight: 1.55, margin: 0 }}>
-            {insight}
-          </p>
+      {insightSide && insight ? (
+        /* body — gráfico à esquerda, insight na lateral direita */
+        <div style={{ flex: 1, display: 'flex', flexWrap: 'wrap', alignItems: 'stretch' }}>
+          <div style={{ flex: '2 1 380px', minWidth: 0, padding: '16px 8px 16px' }}>
+            {children}
+          </div>
+          <div style={{ flex: '1 1 240px', display: 'flex', alignItems: 'center', padding: '16px 18px 16px 8px' }}>
+            <div style={{
+              width: '100%',
+              padding: '14px 16px',
+              background: `${accent}0f`,
+              border: `1px solid ${accent}33`,
+              borderRadius: 14,
+            }}>
+              <span style={{
+                display: 'inline-block', marginBottom: 6,
+                fontSize: 11, fontWeight: 900, letterSpacing: '.04em',
+                color: accent, textTransform: 'uppercase',
+              }}>
+                Insight
+              </span>
+              <p style={{ fontSize: 12.5, color: '#cbd5e1', lineHeight: 1.55, margin: 0 }}>
+                {insight}
+              </p>
+            </div>
+          </div>
         </div>
+      ) : (
+        <>
+          {/* body — gráfico */}
+          <div style={{ padding: '16px 8px 6px', flex: 1 }}>
+            {children}
+          </div>
+
+          {/* insight — leitura analítica */}
+          {insight && (
+            <div style={{
+              margin: '8px 14px 16px',
+              padding: '12px 14px',
+              background: `${accent}0f`,
+              border: `1px solid ${accent}33`,
+              borderRadius: 14,
+              display: 'flex', gap: 10, alignItems: 'flex-start',
+            }}>
+              <span style={{
+                flexShrink: 0, marginTop: 1,
+                fontSize: 11, fontWeight: 900, letterSpacing: '.04em',
+                color: accent, textTransform: 'uppercase',
+              }}>
+                Insight
+              </span>
+              <p style={{ fontSize: 12.5, color: '#cbd5e1', lineHeight: 1.55, margin: 0 }}>
+                {insight}
+              </p>
+            </div>
+          )}
+        </>
       )}
     </div>
   )

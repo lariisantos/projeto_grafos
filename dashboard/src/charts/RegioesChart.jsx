@@ -1,17 +1,26 @@
+import { useState } from 'react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Cell, LabelList,
 } from 'recharts'
 import { CORES } from '../constants'
+import { FilterChips } from '../components/Filters'
 
 const AXIS = { fill: '#94a3b8', fontSize: 10 }
 const GRID = 'rgba(148,163,184,0.08)'
+const ACCENT = '#a78bfa'
 
-function MiniBar({ data, dataKey, label, fmt }) {
+const METRICAS = [
+  { value: 'ordem',      chip: 'Aeroportos', label: 'Aeroportos por região', fmt: v => v },
+  { value: 'tamanho',    chip: 'Arestas',    label: 'Arestas internas',      fmt: v => v },
+  { value: 'grau_medio', chip: 'Grau médio', label: 'Grau médio por região', fmt: v => v.toFixed(1) },
+]
+
+function MiniBar({ data, dataKey, label, fmt, height = 185 }) {
   return (
     <div>
       <p style={{ color: '#94a3b8', fontSize: 12, marginBottom: 6, paddingLeft: 6 }}>{label}</p>
-      <ResponsiveContainer width="100%" height={185}>
+      <ResponsiveContainer width="100%" height={height}>
         <BarChart data={data} margin={{ top: 28, right: 12, left: 0, bottom: 32 }}>
           <CartesianGrid vertical={false} stroke={GRID} />
           <XAxis
@@ -58,12 +67,28 @@ function MiniBar({ data, dataKey, label, fmt }) {
   )
 }
 
+/* Comparação entre regiões. Filtro: qual indicador exibir (ou todos). */
 export default function RegioesChart({ data }) {
+  const [metrica, setMetrica] = useState('todas')
+  const opcoes = [{ value: 'todas', label: 'Todas' }, ...METRICAS.map(m => ({ value: m.value, label: m.chip }))]
+  const visiveis = metrica === 'todas' ? METRICAS : METRICAS.filter(m => m.value === metrica)
+  const unica = metrica !== 'todas'
+
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
-      <MiniBar data={data} dataKey="ordem"      label="Aeroportos por região"   fmt={v => v} />
-      <MiniBar data={data} dataKey="tamanho"    label="Arestas internas"         fmt={v => v} />
-      <MiniBar data={data} dataKey="grau_medio" label="Grau médio por região"    fmt={v => v.toFixed(1)} />
+    <div>
+      <FilterChips label="Indicador" accent={ACCENT} options={opcoes} value={metrica} onChange={setMetrica} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
+        {visiveis.map(m => (
+          <MiniBar
+            key={m.value}
+            data={data}
+            dataKey={m.value}
+            label={m.label}
+            fmt={m.fmt}
+            height={unica ? 320 : 185}
+          />
+        ))}
+      </div>
     </div>
   )
 }
