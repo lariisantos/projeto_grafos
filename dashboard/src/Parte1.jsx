@@ -82,7 +82,6 @@ export default function Parte1() {
               sub="Histograma · quantos aeroportos existem para cada grau"
               tag="Exploratória 1"
               accent="#3b82f6"
-              insightSide
               insight="A distribuição é assimétrica à direita: a maioria dos aeroportos tem grau entre 3 e 5 e apenas 4 superam a média de 4,5 conexões. É a assinatura de uma rede de poucos hubs dominantes, em vez de conexões uniformes."
             >
               <GrauChart histData={histData} media={media} ego={egoAeroportos} />
@@ -93,7 +92,6 @@ export default function Parte1() {
               sub="Barras empilhadas · tipo de aresta em cada aeroporto"
               tag="Exploratória 2"
               accent="#2dd4bf"
-              insightSide
               insight="Decompõe o grau de cada aeroporto pelos três tipos de aresta do nosso modelo (regional, hub regional, hub nacional). Os maiores graus vêm de conexões de hub nacional: o alto grau resulta do papel de articulação entre regiões, não de muitas rotas locais."
             >
               <ComposicaoChart data={composicao} />
@@ -113,7 +111,6 @@ export default function Parte1() {
               sub="Barra ordenada · grau de cada aeroporto, colorido por região"
               tag="Explanatória 1"
               accent="#fbbf24"
-              insightSide
               insight="Recife (9), Guarulhos (8) e Manaus (7) são os principais hubs da rede. Abaixo da média (4,5) ficam aeroportos periféricos como Goiânia (1) e Curitiba/Florianópolis (2). A cor revela a região a que cada hub pertence."
             >
               <HubsChart data={hubs} media={media} />
@@ -124,7 +121,6 @@ export default function Parte1() {
               sub="3 indicadores · nº de aeroportos, arestas internas e grau médio"
               tag="Explanatória 2"
               accent="#a78bfa"
-              insightSide
               insight="Agrega a rede por região. O Nordeste lidera nos três indicadores (6 aeroportos, 15 arestas internas, grau médio 5,7), seguido do Sudeste — concentração coerente com a presença dos maiores hubs nessas regiões."
             >
               <RegioesChart data={regioes} />
