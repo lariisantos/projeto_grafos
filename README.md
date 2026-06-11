@@ -9,6 +9,12 @@ Os resultados são exibidos em um **dashboard React interativo**, gerado automat
 
 ---
 
+## 📄 Relatório e Apresentação
+
+> **[Acesse aqui o PDF do relatório e os slides da apresentação](https://drive.google.com/drive/folders/1NWLV8WkyrD1wpvvItqggLeigFrwaRgbV?usp=sharing)**
+
+---
+
 ## Estrutura de Pastas
 
 ```text
