@@ -624,10 +624,10 @@ def main():
         gerar_grafo_15k_render(grafo_p2)  # layout 15k p/ Canvas -> public/grafo_parte2_15k.json
 
         # ── Front React (camada de apresentação por cima dos dados) ──
+        executar_benchmarks(grafo_p2)    # gera out/parte2_report.json antes do export
         exportar_react_data()            # Parte 1 -> dashboard/src/data.js
         exportar_react_data_parte2(grafo_p2)  # Parte 2 -> dashboard/src/data_parte2.js
         buildar_react()                  # build do app React
-        executar_benchmarks(grafo_p2)  # Q10 — benchmarks de algoritmos no grafo de atores (JSON em out/parte2_report.json)
     except Exception as e:
         print(f"Falha na execução: {e}")
         raise

@@ -22,45 +22,9 @@
       box-shadow:0 8px 24px rgba(0,0,0,.18);transition:opacity .12s,transform .12s;z-index:20}
     .tooltip.visible{opacity:1;transform:translateY(0)}
     .tooltip strong{display:block;margin-bottom:3px}
-    .tooltip span{color:#94a3b8;display:block}
-    #titulo{position:fixed;top:18px;left:50%;transform:translateX(-50%);
-      font-family:system-ui,sans-serif;font-size:18px;font-weight:800;color:#1e293b;
-      background:rgba(255,255,255,.92);padding:8px 22px;border-radius:10px;
-      box-shadow:0 2px 12px rgba(0,0,0,.10);z-index:15;white-space:nowrap;pointer-events:none}
-    #legenda{position:fixed;bottom:22px;left:22px;background:rgba(255,255,255,.95);
-      border-radius:12px;padding:14px 18px;box-shadow:0 4px 18px rgba(0,0,0,.12);
-      font-family:system-ui,sans-serif;font-size:13px;z-index:15;pointer-events:none}
-    #legenda h3{margin:0 0 10px;font-size:13px;font-weight:800;color:#1e293b;text-transform:uppercase;letter-spacing:.04em}
-    .leg-item{display:flex;align-items:center;gap:8px;margin-bottom:6px;color:#334155}
-    .leg-item:last-child{margin-bottom:0}
-    .leg-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;border:2px solid rgba(255,255,255,.7);box-shadow:0 1px 4px rgba(0,0,0,.15)}
-    #legenda .leg-size-row{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid #e2e8f0;color:#475569;font-size:12px}
-    .leg-circle-sm{width:10px;height:10px;border-radius:50%;background:#94a3b8;flex-shrink:0}
-    .leg-circle-lg{width:18px;height:18px;border-radius:50%;background:#94a3b8;flex-shrink:0}
-    #legenda .leg-section{margin-top:10px;padding-top:10px;border-top:1px solid #e2e8f0}
-    #legenda .leg-section-title{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px}
-    .leg-edge{display:flex;align-items:center;gap:8px;margin-bottom:6px;color:#334155}
-    .leg-edge:last-child{margin-bottom:0}
-    .leg-line{flex-shrink:0;border-radius:3px}</style>
+    .tooltip span{color:#94a3b8;display:block}</style>
 </head>
 <body>
-  <div id="titulo">Subgrafo — 10 Aeroportos com Maior Grau</div>
-  <div id="legenda">
-    <h3>Legenda</h3>
-    <div class="leg-section-title">Nós — Região</div>
-    <div class="leg-item"><span class="leg-dot" style="background:#f59e0b"></span>Nordeste</div>
-    <div class="leg-item"><span class="leg-dot" style="background:#3b82f6"></span>Sudeste</div>
-    <div class="leg-item"><span class="leg-dot" style="background:#ef4444"></span>Norte</div>
-    <div class="leg-item"><span class="leg-dot" style="background:#10b981"></span>Sul</div>
-    <div class="leg-item"><span class="leg-dot" style="background:#8b5cf6"></span>Centro-Oeste</div>
-    <div class="leg-size-row"><span class="leg-circle-sm"></span><span class="leg-circle-lg"></span>Tamanho = grau do nó</div>
-    <div class="leg-section">
-      <div class="leg-section-title">Arestas — Tipo de Conexão</div>
-      <div class="leg-edge"><span class="leg-line" style="width:28px;height:5px;background:#6366f1"></span>Inter-regional (peso 2)</div>
-      <div class="leg-edge"><span class="leg-line" style="width:28px;height:3.5px;background:#f59e0b"></span>Hub → Nordeste (peso 1.5)</div>
-      <div class="leg-edge"><span class="leg-line" style="width:28px;height:2px;background:#10b981"></span>Intra-regional (peso 1)</div>
-    </div>
-  </div>
   <div id="wrap"><svg id="graph" viewBox="0 0 1000 800"><g id="viewport"></g></svg></div>
   <div class="tooltip" id="tooltip"></div>
   <script>
@@ -98,9 +62,8 @@
         line.setAttribute('class','edge');line.setAttribute('id',`edge-${i}`);
         line.setAttribute('x1',s.x);line.setAttribute('y1',s.y);
         line.setAttribute('x2',t.x);line.setAttribute('y2',t.y);
-        const sw=edge.weight>=2?5:edge.weight>=1.5?3.5:2;
-        const sc=edge.weight>=2?'#6366f1':edge.weight>=1.5?'#f59e0b':'#10b981';
-        line.setAttribute('stroke',sc);line.setAttribute('stroke-width',sw);line.setAttribute('opacity','0.75');
+        const sw=edge.weight>=2?4:edge.weight>=1.5?3:2;
+        line.setAttribute('stroke','#94a3b8');line.setAttribute('stroke-width',sw);line.setAttribute('opacity','0.7');
         line.addEventListener('mouseenter',()=>line.setAttribute('stroke-width',sw+2));
         line.addEventListener('mouseleave',()=>line.setAttribute('stroke-width',sw));
         viewport.appendChild(line);

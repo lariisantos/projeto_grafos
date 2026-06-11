@@ -11,7 +11,7 @@ const nf = (v) => Number(v).toLocaleString('pt-BR')
 
 export default function Parte2() {
   const [tab, setTab] = useState('analise')
-  const { resumo, heatmap, generos } = DATA_PARTE2
+  const { resumo, heatmap, generos, desempenho = {} } = DATA_PARTE2
 
   return (
     <div>
@@ -97,6 +97,92 @@ export default function Parte2() {
             >
               <Parte2Heatmap heatmap={heatmap} />
             </ChartCard>
+          </div>
+        </div>
+      )}
+
+      {/* TABELA DE DESEMPENHO */}
+      {tab === 'analise' && Object.keys(desempenho).length > 0 && (
+        <div style={{ marginBottom: 30 }}>
+          <SectionHeader
+            title="Métricas de Desempenho"
+            sub="Tempo de execução dos algoritmos sobre o grafo de colaboração de atores"
+          />
+          <InsightBanner accent="#f97316" title="Como interpretar">
+            Cada algoritmo foi executado a partir de um mesmo nó de origem. BFS e DFS percorrem
+            a rede sem pesos; Dijkstra e Bellman-Ford calculam caminhos mínimos considerando
+            os pesos das arestas. O maior tempo do Bellman-Ford é esperado: sua complexidade
+            O(V·E) é maior que a do Dijkstra com heap.
+          </InsightBanner>
+          <div style={{
+            background: 'rgba(15,23,42,0.82)', border: '1px solid rgba(148,163,184,0.16)',
+            borderRadius: 16, overflow: 'hidden',
+          }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid rgba(148,163,184,0.16)' }}>
+                  {['Algoritmo', 'Tempo (ms)', 'Tempo (s)', 'Desempenho relativo'].map(h => (
+                    <th key={h} style={{
+                      padding: '14px 20px', textAlign: 'left',
+                      fontSize: 11, fontWeight: 800, letterSpacing: '.07em',
+                      textTransform: 'uppercase', color: '#64748b',
+                    }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {(() => {
+                  const entradas = Object.entries(desempenho)
+                  const max = Math.max(...entradas.map(([, v]) => v))
+                  const CORES_ALGO = { BFS: '#3b82f6', DFS: '#2dd4bf', Dijkstra: '#fbbf24', 'Bellman-Ford': '#f472b6' }
+                  return entradas.map(([algo, seg], i) => {
+                    const pct = Math.round((seg / max) * 100)
+                    const cor = CORES_ALGO[algo] || '#94a3b8'
+                    return (
+                      <tr key={algo} style={{
+                        borderBottom: i < entradas.length - 1 ? '1px solid rgba(148,163,184,0.08)' : 'none',
+                        transition: 'background .15s',
+                      }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(148,163,184,0.05)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                      >
+                        <td style={{ padding: '14px 20px' }}>
+                          <span style={{
+                            display: 'inline-block', width: 10, height: 10,
+                            borderRadius: '50%', background: cor, marginRight: 10,
+                            verticalAlign: 'middle',
+                          }} />
+                          <span style={{ color: '#e5eefc', fontWeight: 700 }}>{algo}</span>
+                        </td>
+                        <td style={{ padding: '14px 20px', color: '#cbd5e1', fontVariantNumeric: 'tabular-nums' }}>
+                          {(seg * 1000).toFixed(1)}
+                        </td>
+                        <td style={{ padding: '14px 20px', color: '#94a3b8', fontVariantNumeric: 'tabular-nums' }}>
+                          {seg.toFixed(4)}
+                        </td>
+                        <td style={{ padding: '14px 20px', minWidth: 180 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <div style={{
+                              flex: 1, height: 6, background: 'rgba(148,163,184,0.12)',
+                              borderRadius: 3, overflow: 'hidden',
+                            }}>
+                              <div style={{
+                                height: '100%', width: `${pct}%`,
+                                background: `linear-gradient(90deg, ${cor}, ${cor}99)`,
+                                borderRadius: 3, transition: 'width .4s ease',
+                              }} />
+                            </div>
+                            <span style={{ fontSize: 12, color: '#64748b', width: 36, textAlign: 'right' }}>
+                              {pct}%
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })
+                })()}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

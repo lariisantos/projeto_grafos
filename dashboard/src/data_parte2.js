@@ -1028,11 +1028,11 @@ export const DATA_PARTE2 = {
           "grau": 168
         },
         {
-          "ator": "Bobby Cannavale",
+          "ator": "Chris Parnell",
           "grau": 164
         },
         {
-          "ator": "Chris Parnell",
+          "ator": "Elizabeth Banks",
           "grau": 164
         },
         {
@@ -1040,7 +1040,7 @@ export const DATA_PARTE2 = {
           "grau": 164
         },
         {
-          "ator": "Elizabeth Banks",
+          "ator": "Bobby Cannavale",
           "grau": 164
         }
       ],
@@ -1200,11 +1200,11 @@ export const DATA_PARTE2 = {
           "grau": 168
         },
         {
-          "ator": "Bobby Cannavale",
+          "ator": "Chris Parnell",
           "grau": 164
         },
         {
-          "ator": "Chris Parnell",
+          "ator": "Elizabeth Banks",
           "grau": 164
         }
       ],
@@ -1282,29 +1282,29 @@ export const DATA_PARTE2 = {
           "grau": 147
         },
         {
-          "ator": "Miyuki Sawashiro",
+          "ator": "Yoko Hikasa",
           "grau": 146
         },
         {
-          "ator": "Yoko Hikasa",
+          "ator": "Miyuki Sawashiro",
           "grau": 146
         }
       ],
       "TV Dramas": [
         {
-          "ator": "Bobby Cannavale",
-          "grau": 164
-        },
-        {
           "ator": "Joan Cusack",
           "grau": 164
         },
         {
-          "ator": "John Travolta",
-          "grau": 157
+          "ator": "Bobby Cannavale",
+          "grau": 164
         },
         {
           "ator": "Kay Kay Menon",
+          "grau": 157
+        },
+        {
+          "ator": "John Travolta",
           "grau": 157
         },
         {
@@ -1360,15 +1360,15 @@ export const DATA_PARTE2 = {
           "grau": 131
         },
         {
-          "ator": "Jane Lynch",
-          "grau": 129
-        },
-        {
           "ator": "Paul Rudd",
           "grau": 129
         },
         {
           "ator": "Rajesh Sharma",
+          "grau": 129
+        },
+        {
+          "ator": "Naomi Watts",
           "grau": 129
         }
       ],
@@ -1434,11 +1434,11 @@ export const DATA_PARTE2 = {
           "grau": 183
         },
         {
-          "ator": "James Franco",
+          "ator": "Hiroshi Kamiya",
           "grau": 182
         },
         {
-          "ator": "Hiroshi Kamiya",
+          "ator": "James Franco",
           "grau": 182
         },
         {
@@ -1512,7 +1512,7 @@ export const DATA_PARTE2 = {
           "grau": 168
         },
         {
-          "ator": "Bobby Cannavale",
+          "ator": "Elizabeth Banks",
           "grau": 164
         },
         {
@@ -1520,7 +1520,7 @@ export const DATA_PARTE2 = {
           "grau": 164
         },
         {
-          "ator": "Elizabeth Banks",
+          "ator": "Bobby Cannavale",
           "grau": 164
         },
         {
@@ -1566,11 +1566,11 @@ export const DATA_PARTE2 = {
           "grau": 187
         },
         {
-          "ator": "Naseeruddin Shah",
+          "ator": "Boman Irani",
           "grau": 183
         },
         {
-          "ator": "Boman Irani",
+          "ator": "Naseeruddin Shah",
           "grau": 183
         },
         {
@@ -1640,11 +1640,11 @@ export const DATA_PARTE2 = {
           "grau": 187
         },
         {
-          "ator": "Naseeruddin Shah",
+          "ator": "Boman Irani",
           "grau": 183
         },
         {
-          "ator": "Boman Irani",
+          "ator": "Naseeruddin Shah",
           "grau": 183
         },
         {
@@ -1680,11 +1680,11 @@ export const DATA_PARTE2 = {
           "grau": 164
         },
         {
-          "ator": "Kay Kay Menon",
+          "ator": "John Travolta",
           "grau": 157
         },
         {
-          "ator": "John Travolta",
+          "ator": "Kay Kay Menon",
           "grau": 157
         },
         {
@@ -1778,7 +1778,7 @@ export const DATA_PARTE2 = {
           "grau": 145
         },
         {
-          "ator": "Andy Samberg",
+          "ator": "Adam Scott",
           "grau": 143
         }
       ],
@@ -1816,11 +1816,11 @@ export const DATA_PARTE2 = {
           "grau": 183
         },
         {
-          "ator": "Hiroshi Kamiya",
+          "ator": "James Franco",
           "grau": 182
         },
         {
-          "ator": "James Franco",
+          "ator": "Hiroshi Kamiya",
           "grau": 182
         },
         {
@@ -1844,11 +1844,11 @@ export const DATA_PARTE2 = {
           "grau": 169
         },
         {
-          "ator": "Elizabeth Banks",
+          "ator": "Daisuke Ono",
           "grau": 164
         },
         {
-          "ator": "Daisuke Ono",
+          "ator": "Elizabeth Banks",
           "grau": 164
         },
         {
@@ -1938,11 +1938,11 @@ export const DATA_PARTE2 = {
           "grau": 143
         },
         {
-          "ator": "Danny Trejo",
+          "ator": "Michael Peña",
           "grau": 142
         },
         {
-          "ator": "Michael Peña",
+          "ator": "Danny Trejo",
           "grau": 142
         }
       ],
@@ -2851,5 +2851,11 @@ export const DATA_PARTE2 = {
       "Children & Family Movies": 3834,
       "Crime TV Shows": 3595
     }
+  },
+  "desempenho": {
+    "BFS": 0.1218255000130739,
+    "DFS": 0.18418450000172015,
+    "Dijkstra": 0.5432890999945812,
+    "Bellman-Ford": 1.8501698000036413
   }
 };

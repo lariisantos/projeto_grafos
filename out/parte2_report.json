@@ -1,0 +1,12 @@
+{
+    "configuracao": {
+        "num_vertices": 36439,
+        "no_origem_teste": "Ama Qamata"
+    },
+    "metricas_tempo_segundos": {
+        "BFS": 0.1218255000130739,
+        "DFS": 0.18418450000172015,
+        "Dijkstra": 0.5432890999945812,
+        "Bellman-Ford": 1.8501698000036413
+    }
+}

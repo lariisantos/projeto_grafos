@@ -399,6 +399,14 @@ def exportar_react_data_parte2(grafo, caminho_dataset=os.path.join(DATA, "datase
     generos["histograma"]["Todos"] = payload["histograma"]
     payload["generos"] = generos
 
+    caminho_report = os.path.join(OUT, "parte2_report.json")
+    if os.path.exists(caminho_report):
+        with open(caminho_report, encoding="utf-8") as f:
+            report = json.load(f)
+        payload["desempenho"] = report.get("metricas_tempo_segundos", {})
+    else:
+        payload["desempenho"] = {}
+
     data_js = (
         "// Gerado automaticamente por export_react.py -- nao edite manualmente\n"
         f"export const DATA_PARTE2 = {json.dumps(payload, ensure_ascii=False, indent=2)};\n"

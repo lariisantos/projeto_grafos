@@ -22,27 +22,9 @@
       box-shadow:0 8px 24px rgba(0,0,0,.18);transition:opacity .12s,transform .12s;z-index:20}
     .tooltip.visible{opacity:1;transform:translateY(0)}
     .tooltip strong{display:block;margin-bottom:3px}
-    .tooltip span{color:#94a3b8;display:block}
-    #titulo{position:fixed;top:18px;left:50%;transform:translateX(-50%);
-      font-family:system-ui,sans-serif;font-size:18px;font-weight:800;color:#1e293b;
-      background:rgba(255,255,255,.92);padding:8px 22px;border-radius:10px;
-      box-shadow:0 2px 12px rgba(0,0,0,.10);z-index:15;white-space:nowrap;pointer-events:none}
-    #legenda{position:fixed;bottom:22px;left:22px;background:rgba(255,255,255,.95);
-      border-radius:12px;padding:14px 18px;box-shadow:0 4px 18px rgba(0,0,0,.12);
-      font-family:system-ui,sans-serif;font-size:13px;z-index:15;pointer-events:none}
-    #legenda h3{margin:0 0 10px;font-size:13px;font-weight:800;color:#1e293b;text-transform:uppercase;letter-spacing:.04em}
-    .leg-item{display:flex;align-items:center;gap:8px;margin-bottom:6px;color:#334155}
-    .leg-item:last-child{margin-bottom:0}
-    .leg-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;border:2px solid rgba(255,255,255,.7);box-shadow:0 1px 4px rgba(0,0,0,.15)}</style>
+    .tooltip span{color:#94a3b8;display:block}</style>
 </head>
 <body>
-  <div id="titulo">BFS — Camadas a partir de GRU (São Paulo)</div>
-  <div id="legenda">
-    <h3>Legenda</h3>
-    <div class="leg-item"><span class="leg-dot" style="background:#f59e0b"></span>Origem (Camada 0)</div>
-    <div class="leg-item"><span class="leg-dot" style="background:#3b82f6"></span>Camada 1 — vizinhos diretos</div>
-    <div class="leg-item"><span class="leg-dot" style="background:#10b981"></span>Camada 2 — vizinhos de vizinhos</div>
-  </div>
   <div id="wrap"><svg id="graph" viewBox="0 0 1370 480"><g id="viewport"></g></svg></div>
   <div class="tooltip" id="tooltip"></div>
   <script>
