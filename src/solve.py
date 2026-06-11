@@ -384,10 +384,12 @@ def gerar_distribuicao_graus_parte2(grafo, pasta_saida: str = 'out') -> str:
     )
     ax.set_xlabel('Grau (número de colaboradores únicos)', fontsize=12)
     ax.set_ylabel('Frequência (número de atores)', fontsize=12)
+    ax.set_xlim(0, 125)
     ax.grid(axis='y', linestyle='--', alpha=0.7)
     ax.legend(fontsize=10)
 
-    stats = f'Atores: {len(graus):,}\nMáximo: {maximo}\nMédia: {media:.1f}'
+    fora_janela = sum(1 for g in graus if g > 125)
+    stats = f'Atores: {len(graus):,}\nMáximo: {maximo}\nMédia: {media:.1f}\n(+{fora_janela} acima de 125)'
     ax.text(0.97, 0.97, stats, transform=ax.transAxes, fontsize=9,
             verticalalignment='top', horizontalalignment='right',
             bbox=dict(boxstyle='round,pad=0.4', facecolor='white', alpha=0.85, edgecolor='#cbd5e1'))
@@ -445,8 +447,8 @@ def gerar_heatmap_distancias_parte2(grafo, pasta_saida: str = 'out', top_n: int 
     ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=9)
     ax.set_yticklabels(labels, fontsize=9)
     ax.set_title(
-        f'Heatmap de Distâncias BFS — Top {top_n} Atores Mais Conectados\n'
-        'Rede de Colaboração Netflix  (valor = hops mínimos entre atores)',
+        f'Quantos atores separam dois hubs da Netflix?\n'
+        f'Distâncias BFS entre os {top_n} atores mais conectados  (0 = mesmo ator)',
         fontsize=12, fontweight='bold', pad=15,
     )
     ax.set_xlabel('Ator (destino)', fontsize=11)
