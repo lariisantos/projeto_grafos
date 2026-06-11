@@ -1,4 +1,29 @@
+"""
+algorithms.py — implementação de BFS, DFS, Dijkstra e Bellman–Ford
+"""
+import heapq
 from collections import deque
+
+
+def calcular_graus(grafo):
+    return {no: len(vizinhos) for no, vizinhos in grafo.adj.items()}
+
+
+def calcular_densidade_ego(grafo, no):
+    vizinhos = set(grafo.adj[no].keys())
+    ego_nos = vizinhos | {no}
+    n = len(ego_nos)
+    if n < 2:
+        return 0.0
+    max_arestas = n * (n - 1) / 2
+    ego_list = list(ego_nos)
+    arestas_reais = sum(
+        1
+        for i in range(len(ego_list))
+        for j in range(i + 1, len(ego_list))
+        if ego_list[j] in grafo.adj[ego_list[i]]
+    )
+    return arestas_reais / max_arestas
 
 
 def bfs(grafo, aeroporto_inicial):
@@ -30,3 +55,173 @@ def bfs(grafo, aeroporto_inicial):
                 predecessores[aeroporto_vizinho] = aeroporto_atual
 
     return ordem_visita, niveis, predecessores
+
+def dijkstra(grafo, origem, destino):
+    fila = [(0.0, origem, [origem])]
+    visitados = set()
+    
+    while fila:
+        custo, no_atual, caminho = heapq.heappop(fila)
+        
+        if no_atual == destino:
+            return custo, caminho
+            
+        if no_atual not in visitados:
+            visitados.add(no_atual)
+            
+            for vizinho, peso in grafo.adj.get(no_atual, {}).items():
+                if peso < 0:
+                    continue
+                    
+                if vizinho not in visitados:
+                    heapq.heappush(fila, (custo + peso, vizinho, caminho + [vizinho]))
+                    
+    return float('inf'), []
+
+def bellman_ford(grafo, origem, destino):
+    distancias = {no: float('inf') for no in grafo.adj}
+    caminhos = {no: [] for no in grafo.adj}
+    
+    distancias[origem] = 0
+    caminhos[origem] = [origem]
+    
+    nos = list(grafo.adj.keys())
+    
+    for _ in range(len(nos) * 2):
+        houve_mudanca = False
+        for u in nos:
+            if distancias[u] == float('inf'):
+                continue
+            for v, peso in grafo.adj.get(u, {}).items():
+                
+                if caminhos[u].count(v) < 2:
+                    if distancias[u] + peso < distancias[v]:
+                        distancias[v] = distancias[u] + peso
+                        caminhos[v] = caminhos[u] + [v]
+                        houve_mudanca = True
+                        
+        if not houve_mudanca:
+            break
+            
+    if distancias[destino] == float('inf'):
+        return float('inf'), []
+        
+    return distancias[destino], caminhos[destino]
+
+def bfs_filmes(grafo, fonte_inicial):
+
+    if hasattr(grafo, "adj"):
+        adjacencias = grafo.adj
+    else:
+        adjacencias = grafo
+
+    if fonte_inicial not in adjacencias:
+        raise ValueError(f"A fonte {fonte_inicial} não existe no grafo de filmes.")
+
+    fila = []
+    inicio_fila = 0
+
+    visitados = set()
+    ordem_visita = []
+    camadas = {}
+    predecessores = {}
+    ciclos = []
+
+    arestas_de_ciclo_vistas = set()
+
+    fila.append(fonte_inicial)
+    visitados.add(fonte_inicial)
+    camadas[fonte_inicial] = 0
+    predecessores[fonte_inicial] = None
+
+    while inicio_fila < len(fila):
+        no_atual = fila[inicio_fila]
+        inicio_fila += 1
+
+        ordem_visita.append(no_atual)
+
+        for vizinho in adjacencias[no_atual]:
+            if vizinho not in visitados:
+                visitados.add(vizinho)
+                fila.append(vizinho)
+
+                camadas[vizinho] = camadas[no_atual] + 1
+                predecessores[vizinho] = no_atual
+
+            else:
+                if predecessores[no_atual] != vizinho and predecessores.get(vizinho) != no_atual:
+                    chave_aresta = tuple(sorted([str(no_atual), str(vizinho)]))
+
+                    if chave_aresta not in arestas_de_ciclo_vistas:
+                        arestas_de_ciclo_vistas.add(chave_aresta)
+                        ciclos.append((no_atual, vizinho))
+
+    return ordem_visita, camadas, predecessores, ciclos
+
+def dfs_filmes(grafo, fonte_inicial):
+    if hasattr(grafo, "adj"):
+        adjacencias = grafo.adj
+    else:
+        adjacencias = grafo
+
+    if fonte_inicial not in adjacencias:
+        raise ValueError(f"A fonte {fonte_inicial} não existe no grafo de filmes.")
+
+    cores = {}
+    ordem_visita = []
+    camadas = {}
+    predecessores = {}
+    ciclos = []
+
+    tempos_entrada = {}
+    tempos_saida = {}
+    tempo = [0]
+
+    classificacao_arestas = {
+        "arvore": [],
+        "retorno": [],
+        "avanco": [],
+        "cruzamento": []
+    }
+
+    for no in adjacencias:
+        cores[no] = "branco"
+        predecessores[no] = None
+
+    def visitar(no_atual, profundidade):
+        cores[no_atual] = "cinza"
+        tempo[0] += 1
+        tempos_entrada[no_atual] = tempo[0]
+
+        ordem_visita.append(no_atual)
+        camadas[no_atual] = profundidade
+
+        for vizinho in adjacencias[no_atual]:
+
+            if vizinho not in cores:
+                cores[vizinho] = "branco"
+                predecessores[vizinho] = None
+
+            if cores[vizinho] == "branco":
+                classificacao_arestas["arvore"].append((no_atual, vizinho))
+                predecessores[vizinho] = no_atual
+                visitar(vizinho, profundidade + 1)
+
+            elif cores[vizinho] == "cinza":
+                if predecessores[no_atual] != vizinho:
+                    classificacao_arestas["retorno"].append((no_atual, vizinho))
+                    ciclos.append((no_atual, vizinho))
+
+            else:
+                if tempos_entrada[no_atual] < tempos_entrada[vizinho]:
+                    classificacao_arestas["avanco"].append((no_atual, vizinho))
+                else:
+                    classificacao_arestas["cruzamento"].append((no_atual, vizinho))
+
+        cores[no_atual] = "preto"
+        tempo[0] += 1
+        tempos_saida[no_atual] = tempo[0]
+
+    visitar(fonte_inicial, 0)
+
+    return ordem_visita, camadas, predecessores, ciclos, classificacao_arestas

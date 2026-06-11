@@ -14,7 +14,7 @@ def main():
     parser.add_argument('--adjacencias', default='data/adjacencias_aeroportos.csv',
                         help='Caminho para adjacencias_aeroportos.csv')
     parser.add_argument('--alg',
-                        choices=['BFS', 'DFS', 'DIJKSTRA', 'BELLMAN_FORD', 'METRICAS', 'GERAR_ADJ'],
+                        choices=['BFS', 'DFS', 'DIJKSTRA', 'BELLMAN_FORD', 'METRICAS', 'GERAR_ADJ', 'ARVORE_PERCURSO'], #Arvore como opção
                         default='METRICAS',
                         help='Algoritmo ou operação a executar')
     parser.add_argument('--source', help='Aeroporto de origem (código IATA)')
@@ -30,6 +30,10 @@ def main():
     elif args.alg == 'METRICAS':
         from solve import calcular_metricas_q3
         calcular_metricas_q3(args.dataset, args.adjacencias, args.out)
+
+    elif args.alg == 'ARVORE_PERCURSO': #Adição ponto 7
+        from solve import gerar_arvore_percurso_q7
+        gerar_arvore_percurso_q7(args.dataset, args.adjacencias, args.out)
 
     elif args.alg == 'BFS':
         if not args.source:

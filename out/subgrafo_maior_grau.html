@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Subgrafo — 10 Aeroportos com Maior Grau</title>
+  <style>
+    *{box-sizing:border-box;margin:0}
+    body{background:#fff;overflow:hidden}
+    #wrap{width:100vw;height:100vh;cursor:grab}
+    #wrap:active{cursor:grabbing}
+    svg{width:100%;height:100%;display:block}
+    .edge{stroke-linecap:round;transition:stroke-width .15s}
+    .node{cursor:move}
+    .node circle{stroke:#fff;stroke-width:2.5;filter:drop-shadow(0 4px 8px rgba(0,0,0,.15));transition:filter .15s}
+    .node:hover circle{filter:drop-shadow(0 0 10px rgba(59,130,246,.5))}
+    .iata{fill:#fff;font-family:system-ui,sans-serif;font-size:14px;font-weight:900;text-anchor:middle;dominant-baseline:middle;pointer-events:none}
+    .city{fill:#475569;font-family:system-ui,sans-serif;font-size:12px;font-weight:600;text-anchor:middle;pointer-events:none}
+    .edge-label{fill:#64748b;font-family:system-ui,sans-serif;font-size:11px;font-weight:700;text-anchor:middle}
+    .level-label{fill:#94a3b8;font-family:system-ui,sans-serif;font-size:12px;font-weight:700;text-anchor:middle}
+    .tooltip{position:fixed;pointer-events:none;opacity:0;transform:translateY(4px);background:#1e293b;color:#f1f5f9;
+      border-radius:10px;padding:8px 12px;font-size:13px;font-family:system-ui,sans-serif;
+      box-shadow:0 8px 24px rgba(0,0,0,.18);transition:opacity .12s,transform .12s;z-index:20}
+    .tooltip.visible{opacity:1;transform:translateY(0)}
+    .tooltip strong{display:block;margin-bottom:3px}
+    .tooltip span{color:#94a3b8;display:block}
+    #titulo{position:fixed;top:18px;left:50%;transform:translateX(-50%);
+      font-family:system-ui,sans-serif;font-size:18px;font-weight:800;color:#1e293b;
+      background:rgba(255,255,255,.92);padding:8px 22px;border-radius:10px;
+      box-shadow:0 2px 12px rgba(0,0,0,.10);z-index:15;white-space:nowrap;pointer-events:none}
+    #legenda{position:fixed;bottom:22px;left:22px;background:rgba(255,255,255,.95);
+      border-radius:12px;padding:14px 18px;box-shadow:0 4px 18px rgba(0,0,0,.12);
+      font-family:system-ui,sans-serif;font-size:13px;z-index:15;pointer-events:none}
+    #legenda h3{margin:0 0 10px;font-size:13px;font-weight:800;color:#1e293b;text-transform:uppercase;letter-spacing:.04em}
+    .leg-item{display:flex;align-items:center;gap:8px;margin-bottom:6px;color:#334155}
+    .leg-item:last-child{margin-bottom:0}
+    .leg-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;border:2px solid rgba(255,255,255,.7);box-shadow:0 1px 4px rgba(0,0,0,.15)}
+    #legenda .leg-size-row{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid #e2e8f0;color:#475569;font-size:12px}
+    .leg-circle-sm{width:10px;height:10px;border-radius:50%;background:#94a3b8;flex-shrink:0}
+    .leg-circle-lg{width:18px;height:18px;border-radius:50%;background:#94a3b8;flex-shrink:0}
+    #legenda .leg-section{margin-top:10px;padding-top:10px;border-top:1px solid #e2e8f0}
+    #legenda .leg-section-title{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px}
+    .leg-edge{display:flex;align-items:center;gap:8px;margin-bottom:6px;color:#334155}
+    .leg-edge:last-child{margin-bottom:0}
+    .leg-line{flex-shrink:0;border-radius:3px}</style>
+</head>
+<body>
+  <div id="titulo">Subgrafo — 10 Aeroportos com Maior Grau</div>
+  <div id="legenda">
+    <h3>Legenda</h3>
+    <div class="leg-section-title">Nós — Região</div>
+    <div class="leg-item"><span class="leg-dot" style="background:#f59e0b"></span>Nordeste</div>
+    <div class="leg-item"><span class="leg-dot" style="background:#3b82f6"></span>Sudeste</div>
+    <div class="leg-item"><span class="leg-dot" style="background:#ef4444"></span>Norte</div>
+    <div class="leg-item"><span class="leg-dot" style="background:#10b981"></span>Sul</div>
+    <div class="leg-item"><span class="leg-dot" style="background:#8b5cf6"></span>Centro-Oeste</div>
+    <div class="leg-size-row"><span class="leg-circle-sm"></span><span class="leg-circle-lg"></span>Tamanho = grau do nó</div>
+    <div class="leg-section">
+      <div class="leg-section-title">Arestas — Tipo de Conexão</div>
+      <div class="leg-edge"><span class="leg-line" style="width:28px;height:5px;background:#6366f1"></span>Inter-regional (peso 2)</div>
+      <div class="leg-edge"><span class="leg-line" style="width:28px;height:3.5px;background:#f59e0b"></span>Hub → Nordeste (peso 1.5)</div>
+      <div class="leg-edge"><span class="leg-line" style="width:28px;height:2px;background:#10b981"></span>Intra-regional (peso 1)</div>
+    </div>
+  </div>
+  <div id="wrap"><svg id="graph" viewBox="0 0 1000 800"><g id="viewport"></g></svg></div>
+  <div class="tooltip" id="tooltip"></div>
+  <script>
+    const nodes = [{"id": "REC", "label": "REC – Recife", "cidade": "Recife", "regiao": "Nordeste", "grau": 9, "cor": "#f59e0b", "raio": 42, "x": 500, "y": 90}, {"id": "GRU", "label": "GRU – São Paulo", "cidade": "São Paulo", "regiao": "Sudeste", "grau": 8, "cor": "#3b82f6", "raio": 38, "x": 670, "y": 145}, {"id": "MAO", "label": "MAO – Manaus", "cidade": "Manaus", "regiao": "Norte", "grau": 7, "cor": "#ef4444", "raio": 35, "x": 775, "y": 290}, {"id": "POA", "label": "POA – Porto Alegre", "cidade": "Porto Alegre", "regiao": "Sul", "grau": 6, "cor": "#10b981", "raio": 31, "x": 775, "y": 469}, {"id": "SSA", "label": "SSA – Salvador", "cidade": "Salvador", "regiao": "Nordeste", "grau": 5, "cor": "#f59e0b", "raio": 28, "x": 670, "y": 614}, {"id": "FOR", "label": "FOR – Fortaleza", "cidade": "Fortaleza", "regiao": "Nordeste", "grau": 5, "cor": "#f59e0b", "raio": 28, "x": 500, "y": 670}, {"id": "NAT", "label": "NAT – Natal", "cidade": "Natal", "regiao": "Nordeste", "grau": 5, "cor": "#f59e0b", "raio": 28, "x": 329, "y": 614}, {"id": "JPA", "label": "JPA – João Pessoa", "cidade": "João Pessoa", "regiao": "Nordeste", "grau": 5, "cor": "#f59e0b", "raio": 28, "x": 224, "y": 469}, {"id": "BSB", "label": "BSB – Brasília", "cidade": "Brasília", "regiao": "Centro-Oeste", "grau": 5, "cor": "#8b5cf6", "raio": 28, "x": 224, "y": 290}, {"id": "THE", "label": "THE – Teresina", "cidade": "Teresina", "regiao": "Nordeste", "grau": 5, "cor": "#f59e0b", "raio": 28, "x": 329, "y": 145}];
+    const edges = [{"source": "REC", "target": "SSA", "weight": 1.5}, {"source": "REC", "target": "FOR", "weight": 1.5}, {"source": "REC", "target": "NAT", "weight": 1.5}, {"source": "REC", "target": "JPA", "weight": 1.5}, {"source": "REC", "target": "THE", "weight": 1.5}, {"source": "REC", "target": "GRU", "weight": 2.0}, {"source": "REC", "target": "MAO", "weight": 2.0}, {"source": "REC", "target": "POA", "weight": 2.0}, {"source": "REC", "target": "BSB", "weight": 2.0}, {"source": "GRU", "target": "MAO", "weight": 2.0}, {"source": "GRU", "target": "POA", "weight": 2.0}, {"source": "GRU", "target": "BSB", "weight": 2.0}, {"source": "MAO", "target": "POA", "weight": 2.0}, {"source": "MAO", "target": "BSB", "weight": 2.0}, {"source": "POA", "target": "BSB", "weight": 2.0}, {"source": "SSA", "target": "FOR", "weight": 1.0}, {"source": "SSA", "target": "NAT", "weight": 1.0}, {"source": "SSA", "target": "JPA", "weight": 1.0}, {"source": "SSA", "target": "THE", "weight": 1.0}, {"source": "FOR", "target": "NAT", "weight": 1.0}, {"source": "FOR", "target": "JPA", "weight": 1.0}, {"source": "FOR", "target": "THE", "weight": 1.0}, {"source": "NAT", "target": "JPA", "weight": 1.0}, {"source": "NAT", "target": "THE", "weight": 1.0}, {"source": "JPA", "target": "THE", "weight": 1.0}];
+    
+    const svg=document.getElementById('graph'),viewport=document.getElementById('viewport'),tooltip=document.getElementById('tooltip');
+    let scale=1,translateX=0,translateY=0,selectedNode=null,isPanning=false,panStart={x:0,y:0,tx:0,ty:0};
+    function nodeById(id){return nodes.find(n=>n.id===id);}
+    function updateTransform(){viewport.setAttribute('transform',`translate(${translateX},${translateY}) scale(${scale})`);}
+    function svgPoint(e){
+      const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;
+      const c=pt.matrixTransform(svg.getScreenCTM().inverse());
+      return {x:(c.x-translateX)/scale,y:(c.y-translateY)/scale};
+    }
+    function moveTooltip(e){tooltip.style.left=`${e.clientX+14}px`;tooltip.style.top=`${e.clientY+14}px`;}
+    function hideTooltip(){tooltip.classList.remove('visible');}
+    svg.addEventListener('mousedown',e=>{
+      if(e.target.closest&&e.target.closest('.node')) return;
+      isPanning=true;panStart={x:e.clientX,y:e.clientY,tx:translateX,ty:translateY};
+    });
+    window.addEventListener('mousemove',e=>{
+      if(selectedNode){const p=svgPoint(e);selectedNode.x=p.x;selectedNode.y=p.y;updatePositions();moveTooltip(e);}
+      else if(isPanning){translateX=panStart.tx+(e.clientX-panStart.x)/1.8;translateY=panStart.ty+(e.clientY-panStart.y)/1.8;updateTransform();}
+    });
+    window.addEventListener('mouseup',()=>{selectedNode=null;isPanning=false;});
+    svg.addEventListener('wheel',e=>{
+      e.preventDefault();scale=Math.min(2.6,Math.max(0.45,scale*(e.deltaY<0?1.1:0.9)));updateTransform();
+    });
+    function render(){
+      viewport.innerHTML='';
+      edges.forEach((edge,i)=>{
+        const s=nodeById(edge.source),t=nodeById(edge.target);
+        const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+        line.setAttribute('class','edge');line.setAttribute('id',`edge-${i}`);
+        line.setAttribute('x1',s.x);line.setAttribute('y1',s.y);
+        line.setAttribute('x2',t.x);line.setAttribute('y2',t.y);
+        const sw=edge.weight>=2?5:edge.weight>=1.5?3.5:2;
+        const sc=edge.weight>=2?'#6366f1':edge.weight>=1.5?'#f59e0b':'#10b981';
+        line.setAttribute('stroke',sc);line.setAttribute('stroke-width',sw);line.setAttribute('opacity','0.75');
+        line.addEventListener('mouseenter',()=>line.setAttribute('stroke-width',sw+2));
+        line.addEventListener('mouseleave',()=>line.setAttribute('stroke-width',sw));
+        viewport.appendChild(line);
+      });
+      nodes.forEach(node=>{
+        const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+        g.setAttribute('class','node');g.setAttribute('transform',`translate(${node.x},${node.y})`);g.dataset.id=node.id;
+        const circle=document.createElementNS('http://www.w3.org/2000/svg','circle');
+        circle.setAttribute('r',node.raio);circle.setAttribute('fill',node.cor);g.appendChild(circle);
+        const iata=document.createElementNS('http://www.w3.org/2000/svg','text');
+        iata.setAttribute('class','iata');iata.setAttribute('y',5);
+        iata.setAttribute('font-size',node.raio>38?'15':'13');
+        iata.textContent=node.id;g.appendChild(iata);
+        const city=document.createElementNS('http://www.w3.org/2000/svg','text');
+        city.setAttribute('class','city');city.setAttribute('y',node.raio+18);
+        city.textContent=node.label;g.appendChild(city);
+        g.addEventListener('mousedown',e=>{e.stopPropagation();selectedNode=node;});
+        g.addEventListener('mouseenter',e=>{
+          tooltip.innerHTML=`<strong>${node.label}</strong><span>Região: ${node.regiao||'—'}</span><span>Grau: ${node.grau}</span>`;
+          tooltip.classList.add('visible');moveTooltip(e);
+        });
+        g.addEventListener('mousemove',moveTooltip);g.addEventListener('mouseleave',hideTooltip);
+        viewport.appendChild(g);
+      });
+      updateTransform();
+    }
+    function updatePositions(){
+      nodes.forEach(node=>{
+        const g=viewport.querySelector(`.node[data-id="${node.id}"]`);
+        if(g) g.setAttribute('transform',`translate(${node.x},${node.y})`);
+      });
+      edges.forEach((edge,i)=>{
+        const s=nodeById(edge.source),t=nodeById(edge.target);
+        const line=document.getElementById(`edge-${i}`);
+        line.setAttribute('x1',s.x);line.setAttribute('y1',s.y);
+        line.setAttribute('x2',t.x);line.setAttribute('y2',t.y);
+      });
+    }
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Árvore dos percursos obrigatórios</title>
+  <style>
+    *{box-sizing:border-box;margin:0}
+    body{background:#fff;overflow:hidden}
+    #wrap{width:100vw;height:100vh;cursor:grab}
+    #wrap:active{cursor:grabbing}
+    svg{width:100%;height:100%;display:block}
+    .edge{stroke-linecap:round;transition:stroke-width .15s}
+    .node{cursor:move}
+    .node circle{stroke:#fff;stroke-width:2.5;filter:drop-shadow(0 4px 8px rgba(0,0,0,.15));transition:filter .15s}
+    .node:hover circle{filter:drop-shadow(0 0 10px rgba(59,130,246,.5))}
+    .iata{fill:#fff;font-family:system-ui,sans-serif;font-size:14px;font-weight:900;text-anchor:middle;dominant-baseline:middle;pointer-events:none}
+    .city{fill:#475569;font-family:system-ui,sans-serif;font-size:12px;font-weight:600;text-anchor:middle;pointer-events:none}
+    .edge-label{fill:#64748b;font-family:system-ui,sans-serif;font-size:11px;font-weight:700;text-anchor:middle}
+    .level-label{fill:#94a3b8;font-family:system-ui,sans-serif;font-size:12px;font-weight:700;text-anchor:middle}
+    .tooltip{position:fixed;pointer-events:none;opacity:0;transform:translateY(4px);background:#1e293b;color:#f1f5f9;
+      border-radius:10px;padding:8px 12px;font-size:13px;font-family:system-ui,sans-serif;
+      box-shadow:0 8px 24px rgba(0,0,0,.18);transition:opacity .12s,transform .12s;z-index:20}
+    .tooltip.visible{opacity:1;transform:translateY(0)}
+    .tooltip strong{display:block;margin-bottom:3px}
+    .tooltip span{color:#94a3b8;display:block}</style>
+</head>
+<body>
+  <div id="wrap"><svg id="graph" viewBox="0 0 760 490"><g id="viewport"></g></svg></div>
+  <div class="tooltip" id="tooltip"></div>
+  <script>
+    const nodes = [{"id": "CGH", "label": "CGH - São Paulo", "cidade": "São Paulo", "regiao": "Sudeste", "x": 590, "y": 345}, {"id": "GRU", "label": "GRU - São Paulo", "cidade": "São Paulo", "regiao": "Sudeste", "x": 360, "y": 345}, {"id": "MAO", "label": "MAO - Manaus", "cidade": "Manaus", "regiao": "Norte", "x": 130, "y": 345}, {"id": "POA", "label": "POA - Porto Alegre", "cidade": "Porto Alegre", "regiao": "Sul", "x": 360, "y": 135}, {"id": "REC", "label": "REC - Recife", "cidade": "Recife", "regiao": "Nordeste", "x": 130, "y": 135}];
+    const edges = [{"source": "CGH", "target": "GRU", "weight": 1.5, "color": "#3b82f6", "route": "MAO → CGH"}, {"source": "GRU", "target": "MAO", "weight": 2.0, "color": "#3b82f6", "route": "MAO → CGH"}, {"source": "POA", "target": "REC", "weight": 2.0, "color": "#ff4d6d", "route": "REC → POA"}];
+    
+    const svg=document.getElementById('graph'),viewport=document.getElementById('viewport'),tooltip=document.getElementById('tooltip');
+    let scale=1,translateX=0,translateY=0,selectedNode=null,isPanning=false,panStart={x:0,y:0,tx:0,ty:0};
+    function nodeById(id){return nodes.find(n=>n.id===id);}
+    function updateTransform(){viewport.setAttribute('transform',`translate(${translateX},${translateY}) scale(${scale})`);}
+    function svgPoint(e){
+      const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;
+      const c=pt.matrixTransform(svg.getScreenCTM().inverse());
+      return {x:(c.x-translateX)/scale,y:(c.y-translateY)/scale};
+    }
+    function moveTooltip(e){tooltip.style.left=`${e.clientX+14}px`;tooltip.style.top=`${e.clientY+14}px`;}
+    function hideTooltip(){tooltip.classList.remove('visible');}
+    svg.addEventListener('mousedown',e=>{
+      if(e.target.closest&&e.target.closest('.node')) return;
+      isPanning=true;panStart={x:e.clientX,y:e.clientY,tx:translateX,ty:translateY};
+    });
+    window.addEventListener('mousemove',e=>{
+      if(selectedNode){const p=svgPoint(e);selectedNode.x=p.x;selectedNode.y=p.y;updatePositions();moveTooltip(e);}
+      else if(isPanning){translateX=panStart.tx+(e.clientX-panStart.x)/1.8;translateY=panStart.ty+(e.clientY-panStart.y)/1.8;updateTransform();}
+    });
+    window.addEventListener('mouseup',()=>{selectedNode=null;isPanning=false;});
+    svg.addEventListener('wheel',e=>{
+      e.preventDefault();scale=Math.min(2.6,Math.max(0.45,scale*(e.deltaY<0?1.1:0.9)));updateTransform();
+    });
+    function render(){
+      viewport.innerHTML='';
+      edges.forEach((edge,i)=>{
+        const s=nodeById(edge.source),t=nodeById(edge.target);
+        const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+        line.setAttribute('class','edge');line.setAttribute('id',`edge-${i}`);
+        line.setAttribute('x1',s.x);line.setAttribute('y1',s.y);
+        line.setAttribute('x2',t.x);line.setAttribute('y2',t.y);
+        line.setAttribute('stroke',edge.color);line.setAttribute('stroke-width',4);line.setAttribute('opacity','0.8');
+        line.addEventListener('mouseenter',()=>line.setAttribute('stroke-width',7));
+        line.addEventListener('mouseleave',()=>line.setAttribute('stroke-width',4));
+        viewport.appendChild(line);
+        const lbl=document.createElementNS('http://www.w3.org/2000/svg','text');
+        lbl.setAttribute('class','edge-label');lbl.setAttribute('id',`edge-lbl-${i}`);
+        lbl.setAttribute('x',(s.x+t.x)/2);lbl.setAttribute('y',(s.y+t.y)/2-10);
+        lbl.textContent=`peso ${edge.weight}`;
+        viewport.appendChild(lbl);
+      });
+      nodes.forEach(node=>{
+        const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+        g.setAttribute('class','node');g.setAttribute('transform',`translate(${node.x},${node.y})`);g.dataset.id=node.id;
+        const circle=document.createElementNS('http://www.w3.org/2000/svg','circle');
+        circle.setAttribute('r',34);circle.setAttribute('fill','#334155');g.appendChild(circle);
+        const iata=document.createElementNS('http://www.w3.org/2000/svg','text');
+        iata.setAttribute('class','iata');iata.setAttribute('y',5);iata.textContent=node.id;g.appendChild(iata);
+        const city=document.createElementNS('http://www.w3.org/2000/svg','text');
+        city.setAttribute('class','city');city.setAttribute('y',56);city.textContent=node.label;g.appendChild(city);
+        g.addEventListener('mousedown',e=>{e.stopPropagation();selectedNode=node;});
+        g.addEventListener('mouseenter',e=>{
+          const deg=edges.filter(ed=>ed.source===node.id||ed.target===node.id).length;
+          tooltip.innerHTML=`<strong>${node.label}</strong><span>Região: ${node.regiao||'—'}</span><span>Conexões: ${deg}</span>`;
+          tooltip.classList.add('visible');moveTooltip(e);
+        });
+        g.addEventListener('mousemove',moveTooltip);g.addEventListener('mouseleave',hideTooltip);
+        viewport.appendChild(g);
+      });
+      updateTransform();
+    }
+    function updatePositions(){
+      nodes.forEach(node=>{
+        const g=viewport.querySelector(`.node[data-id="${node.id}"]`);
+        if(g) g.setAttribute('transform',`translate(${node.x},${node.y})`);
+      });
+      edges.forEach((edge,i)=>{
+        const s=nodeById(edge.source),t=nodeById(edge.target);
+        const line=document.getElementById(`edge-${i}`);
+        const lbl=document.getElementById(`edge-lbl-${i}`);
+        line.setAttribute('x1',s.x);line.setAttribute('y1',s.y);
+        line.setAttribute('x2',t.x);line.setAttribute('y2',t.y);
+        lbl.setAttribute('x',(s.x+t.x)/2);lbl.setAttribute('y',(s.y+t.y)/2-10);
+      });
+    }
+    render();
+  </script>
+</body>
+</html>
