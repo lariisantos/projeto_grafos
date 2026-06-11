@@ -143,3 +143,18 @@ As arestas em `adjacencias_aeroportos.csv` classificam cada conexão como `regio
 ## Dataset — Parte 2 (Netflix)
 
 `dataset_parte2.csv` contém o elenco de títulos do catálogo Netflix. Cada par de atores que aparece no mesmo título gera uma aresta na rede de colaboração.
+
+| Coluna | Descrição |
+|---|---|
+| `show_id` | ID único para todo filme / programa de TV |
+| `type` | Identifica se é um filme ou programa de TV |
+| `title` | Título da obra |
+| `director` | Diretor(es) do filme/programa |
+| `cast` | Elenco/Atores envolvidos (base para o Grafo de Atores) |
+| `country` | País onde o filme / programa de TV foi produzido |
+| `date_added` | Data em que a obra foi adicionada na plataforma |
+| `release_year` | Ano de lançamento original do filme/série |
+| `rating` | Classificação indicativa do filme/série na TV |
+| `duration` | Duração total (minutos para filmes ou nº de temporadas para séries) |
+| `listed_in` | Gênero / Categorias |
+| `description` | Sinopse / Descrição resumida da obra |
