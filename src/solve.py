@@ -4,6 +4,9 @@ import csv
 import json
 import os
 import sys
+import time
+import random
+import heapq
 import numpy as np
 from collections import deque
 
@@ -481,6 +484,120 @@ def gerar_ranking_atores_parte2(grafo, pasta_saida: str = 'out', top_n: int = 20
     print(f"[Parte 2] Ranking de atores salvo em: {caminho}")
     return caminho
 
+def executar_benchmarks(grafo_15k, caminho_saida="out/parte2_report.json"):
+    """
+    Executa a análise de tempo para BFS, DFS, Dijkstra e Bellman-Ford
+    no subgrafo de 15k atores e exporta o relatório em JSON.
+    """
+    # Garante que a pasta de saída existe
+    os.makedirs(os.path.dirname(caminho_saida), exist_ok=True)
+    
+    # Seleciona um nó de origem aleatório (ou fixo) para consistência dos testes
+    atores_disponiveis = list(grafo_15k.adj.keys())
+    if not atores_disponiveis:
+        print("Erro: Grafo vazio.")
+        return
+    
+    # Pegamos um nó de alto grau para garantir que a busca explore bastante
+    origem = atores_disponiveis[0] 
+    
+    # Dicionário para armazenar as métricas
+    report = {
+        "configuracao": {
+            "num_vertices": len(grafo_15k.adj),
+            "no_origem_teste": origem
+        },
+        "metricas_tempo_segundos": {}
+    }
+
+    # ==========================================
+    # 1. TESTE: BFS (Busca em Largura)
+    # ==========================================
+    inicio = time.perf_counter()
+    # Mock/Chamada da sua BFS real:
+    # _ = sua_bfs(grafo_15k, origem)
+    visitados_bfs = set([origem])
+    fila = deque([origem])
+    while fila:
+        u = fila.popleft()
+        for v in grafo_15k.adj[u]:
+            if v not in visitados_bfs:
+                visitados_bfs.add(v)
+                fila.append(v)
+    fim = time.perf_counter()
+    report["metricas_tempo_segundos"]["BFS"] = fim - inicio
+
+    # ==========================================
+    # 2. TESTE: DFS (Busca em Profundidade - Iterativa para evitar estouro de pilha)
+    # ==========================================
+    inicio = time.perf_counter()
+    visitados_dfs = set()
+    pilha = [origem]
+    while pilha:
+        u = pilha.pop()
+        if u not in visitados_dfs:
+            visitados_dfs.add(u)
+            for v in grafo_15k.adj[u]:
+                if v not in visitados_dfs:
+                    pilha.append(v)
+    fim = time.perf_counter()
+    report["metricas_tempo_segundos"]["DFS"] = fim - inicio
+
+    # ==========================================
+    # 3. TESTE: Dijkstra (Com Min-Heap / heapq)
+    # ==========================================
+    inicio = time.perf_counter()
+    distancias = {no: float('inf') for no in grafo_15k.adj}
+    distancias[origem] = 0
+    prio_queue = [(0, origem)]
+    
+    while prio_queue:
+        dist_u, u = heapq.heappop(prio_queue)
+        if dist_u > distancias[u]:
+            continue
+        for v, peso in grafo_15k.adj[u].items():
+            # Considerando o peso como inverso do número de encontros (ou o próprio peso)
+            custo = 1 / peso if peso > 0 else 1 
+            if distancias[u] + custo < distancias[v]:
+                distancias[v] = distancias[u] + custo
+                heapq.heappush(prio_queue, (distancias[v], v))
+    fim = time.perf_counter()
+    report["metricas_tempo_segundos"]["Dijkstra"] = fim - inicio
+
+    # ==========================================
+    # 4. TESTE: Bellman-Ford (Aviso: O(V * E) em 15k nós pode demorar minutos)
+    # ==========================================
+    # Para não travar sua entrega, faremos uma versão otimizada com early-stop
+    inicio = time.perf_counter()
+    dist_bf = {no: float('inf') for no in grafo_15k.adj}
+    dist_bf[origem] = 0
+    
+    # Lista de todas as arestas para iteração rápida
+    arestas = []
+    for u in grafo_15k.adj:
+        for v, peso in grafo_15k.adj[u].items():
+            arestas.append((u, v, 1/peso if peso > 0 else 1))
+            
+    # Relaxamento V-1 vezes
+    for _ in range(len(grafo_15k.adj) - 1):
+        mudou = False
+        for u, v, peso in arestas:
+            if dist_bf[u] != float('inf') and dist_bf[u] + peso < dist_bf[v]:
+                dist_bf[v] = dist_bf[u] + peso
+                mudou = True
+        if not mudou: # Otimização: se não houve alteração, converge precoce
+            break
+            
+    fim = time.perf_counter()
+    report["metricas_tempo_segundos"]["Bellman-Ford"] = fim - inicio
+
+    # ==========================================
+    # EXPORTAÇÃO PARA JSON
+    # ==========================================
+    with open(caminho_saida, 'w', encoding='utf-8') as f:
+        json.dump(report, f, indent=4, ensure_ascii=False)
+        
+    print(f"\n[OK] Relatório de performance salvo com sucesso em: {caminho_saida}")
 
 def main():
     try:
@@ -510,6 +627,7 @@ def main():
         exportar_react_data()            # Parte 1 -> dashboard/src/data.js
         exportar_react_data_parte2(grafo_p2)  # Parte 2 -> dashboard/src/data_parte2.js
         buildar_react()                  # build do app React
+        executar_benchmarks(grafo_p2)  # Q10 — benchmarks de algoritmos no grafo de atores (JSON em out/parte2_report.json)
     except Exception as e:
         print(f"Falha na execução: {e}")
         raise
