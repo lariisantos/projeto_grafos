@@ -36,3 +36,21 @@ iata	Código identificador único do aeroporto (3 letras)
 cidade	Nome da cidade onde o aeroporto está sediado	
 regiao	Região do Brasil para fins de agrupamento e métricas	
 ```
+
+# Dataset de Filmes (Parte 2)
+
+```text
+Coluna,Descrição
+show_id,ID único para todo filme / programa de TV
+type,Identifica se é um filme ou programa de TV
+title,Título da obra
+director,Diretor(es) do filme/programa
+cast,Elenco/Atores envolvidos (base para o Grafo de Atores)
+country,País onde o filme / programa de TV foi produzido
+date_added,Data em que a obra foi adicionada na plataforma
+realese_year,Ano de lançamento original do filme/série
+rating,Classificação indicativa do filme/série na TV
+duration,Duração total (em minutos para filmes ou número de temporadas para séries)
+listed_in,Gênero / Categorias
+description,Sinopse / Descrição resumida da obra
+```
